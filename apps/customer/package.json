@@ -1,0 +1,37 @@
+{
+  "name": "customer",
+  "version": "1.0.0",
+  "main": "index.ts",
+  "private": true,
+  "scripts": {
+    "dev": "expo start --port 8081",
+    "start": "expo start --port 8081",
+    "android": "expo start --android",
+    "ios": "expo start --ios",
+    "web": "expo start --web",
+    "typecheck": "tsc --noEmit",
+    "lint": "echo \"no lint\""
+  },
+  "dependencies": {
+    "@bolantero/database": "workspace:*",
+    "@bolantero/shared": "workspace:*",
+    "@bolantero/ui": "workspace:*",
+    "@react-navigation/native": "^7.1.14",
+    "@react-navigation/native-stack": "^7.3.21",
+    "@supabase/supabase-js": "^2.50.2",
+    "expo": "~57.0.7",
+    "expo-constants": "~18.0.9",
+    "expo-image-picker": "~17.0.8",
+    "expo-linking": "~8.0.8",
+    "expo-secure-store": "~15.0.7",
+    "expo-status-bar": "~57.0.1",
+    "react": "19.2.3",
+    "react-native": "0.86.0",
+    "react-native-safe-area-context": "~5.6.0",
+    "react-native-screens": "~4.16.0"
+  },
+  "devDependencies": {
+    "@types/react": "~19.2.2",
+    "typescript": "~5.9.3"
+  }
+}

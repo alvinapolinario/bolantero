@@ -1,0 +1,24 @@
+{
+  "name": "bolantero",
+  "private": true,
+  "packageManager": "pnpm@9.15.9",
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "db:start": "pnpm dlx supabase start",
+    "db:reset": "pnpm dlx supabase db reset",
+    "db:types": "pnpm dlx supabase gen types typescript --local > packages/database/src/types.ts",
+    "seed": "node --env-file=.env scripts/seed-demo.mjs"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.50.2"
+  },
+  "devDependencies": {
+    "supabase": "^2.109.1",
+    "turbo": "^2.5.4",
+    "typescript": "^5.8.3"
+  }
+}

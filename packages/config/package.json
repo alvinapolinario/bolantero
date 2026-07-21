@@ -1,0 +1,10 @@
+{
+  "name": "@bolantero/config",
+  "version": "0.0.1",
+  "private": true,
+  "files": ["tsconfig.base.json"],
+  "scripts": {
+    "typecheck": "echo \"ok\"",
+    "lint": "echo \"no lint\""
+  }
+}

@@ -1,0 +1,27 @@
+:root {
+  --bol-bg: #f3efe6;
+  --bol-bg-elevated: #fffaf2;
+  --bol-ink: #1c241c;
+  --bol-muted: #5c675c;
+  --bol-line: #d7cdc0;
+  --bol-brand: #1f5c3a;
+  --bol-brand-deep: #143d26;
+  --bol-accent: #c47a2c;
+  --bol-danger: #a33b2b;
+  --bol-success: #2f7d4a;
+  --bol-warning: #b8841d;
+  --bol-radius: 14px;
+  --bol-shadow: 0 18px 40px rgba(28, 36, 28, 0.08);
+  --bol-font-display: "Fraunces", "Iowan Old Style", Georgia, serif;
+  --bol-font-body: "Manrope", "Segoe UI", sans-serif;
+}
+
+html,
+body {
+  background:
+    radial-gradient(1200px 600px at 10% -10%, #e7f0e4 0%, transparent 55%),
+    radial-gradient(900px 500px at 100% 0%, #f6e7d2 0%, transparent 50%),
+    var(--bol-bg);
+  color: var(--bol-ink);
+  font-family: var(--bol-font-body);
+}

@@ -1,0 +1,12 @@
+{
+  "extends": "expo/tsconfig.base",
+  "compilerOptions": {
+    "strict": true,
+    "paths": {
+      "@bolantero/shared": ["../../packages/shared/src/index.ts"],
+      "@bolantero/database": ["../../packages/database/src/index.ts"],
+      "@bolantero/ui": ["../../packages/ui/src/index.ts"]
+    }
+  },
+  "include": ["**/*.ts", "**/*.tsx"]
+}

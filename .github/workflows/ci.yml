@@ -1,0 +1,47 @@
+name: CI
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+
+jobs:
+  verify:
+    name: Lint Typecheck Test Build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9.15.9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Typecheck shared packages
+        run: |
+          pnpm --filter @bolantero/shared typecheck
+          pnpm --filter @bolantero/database typecheck
+          pnpm --filter @bolantero/ui typecheck
+
+      - name: Unit tests
+        run: pnpm test
+
+      - name: Typecheck web apps
+        run: |
+          pnpm --filter merchant typecheck
+          pnpm --filter admin typecheck
+
+      - name: Build web apps
+        run: |
+          pnpm --filter merchant build
+          pnpm --filter admin build
+        env:
+          NEXT_PUBLIC_SUPABASE_URL: http://127.0.0.1:54321
+          NEXT_PUBLIC_SUPABASE_ANON_KEY: test-anon-key

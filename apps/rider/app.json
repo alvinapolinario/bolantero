@@ -1,0 +1,33 @@
+{
+  "expo": {
+    "name": "Bolantero Rider",
+    "slug": "bolantero-rider",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "light",
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#f3efe6"
+    },
+    "ios": {
+      "supportsTablet": false,
+      "bundleIdentifier": "com.bolantero.rider"
+    },
+    "android": {
+      "adaptiveIcon": {
+        "backgroundColor": "#1f5c3a",
+        "foregroundImage": "./assets/adaptive-icon.png"
+      },
+      "package": "com.bolantero.rider"
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "extra": {
+      "supabaseUrl": "http://127.0.0.1:54321",
+      "supabaseAnonKey": "your-anon-key"
+    }
+  }
+}

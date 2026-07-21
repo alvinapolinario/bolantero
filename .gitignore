@@ -1,0 +1,16 @@
+node_modules
+.turbo
+.next
+dist
+.expo
+web-build
+*.local
+.env
+.env.*
+!.env.example
+.DS_Store
+*.log
+coverage
+.vercel
+supabase/.branches
+supabase/.temp
