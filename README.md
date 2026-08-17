@@ -2,7 +2,7 @@
 
 Hyperlocal delivery platform for Tacurong City, Lambayong, and Isulan.
 
-Bolantero is a **logistics service**, not a marketplace commission model. Merchants keep **100% of product sales**. Platform revenue comes only from delivery-related fees.
+Bolantero is a **logistics and mobility service**, not a marketplace commission model. Merchants keep **100% of product sales**. Platform revenue comes from food delivery-related fees and Ride/Padala trip platform fees.
 
 > Real People. Verified Identities. Trusted Local Delivery.
 
@@ -117,16 +117,19 @@ Phone OTP flows are available in customer/rider/merchant UIs when Supabase SMS i
 
 1. Admin signs in → approve any pending verifications/merchants.
 2. Merchant signs in → confirm products → watch Orders for incoming jobs.
-3. Customer verifies (Level 2) → browse food merchants → checkout with fee breakdown.
-4. Merchant confirms → marks ready.
-5. Rider goes online → accepts job → arrived → picked up → upload POD → delivered.
-6. Customer rates rider; admin monitors Live Deliveries; reports show merchant product revenue vs platform delivery fees.
+3. Customer verifies (Level 2) → home shows Ride | Padala | Food.
+4. Ride or Padala: pick landmarks → quote → confirm. Padala needs item + recipient.
+5. Food (unchanged): browse merchants → checkout with fee breakdown → merchant confirm/ready.
+6. Rider goes online → accepts a trip or food job → advance status → complete (POD for food).
+7. Customer tracks/cancels requested trips; rates food riders. Admin monitors Live Deliveries and Live Trips. Reports show merchant product ≠ food fees ≠ trip platform fees.
 
 ## Money model invariant
 
 - `orders.subtotal` → merchant revenue (never skimmed)
-- `orders.delivery_fee` + `orders.cod_fee` → Bolantero revenue
+- `orders.delivery_fee` + `orders.cod_fee` → Bolantero food logistics revenue
+- `trips.platform_fee` → Bolantero Ride/Padala revenue (`trips.fare = platform_fee + rider_earning`)
 - No commission columns or UI paths exist for product sales
+- Trip payments never use a merchant payee
 
 ## Verification levels
 

@@ -1,30 +1,32 @@
-# Software Requirements Specification (SRS) — Bolantero MVP
+# Software Requirements Specification (SRS) — Bolantero
 
-**Version:** 1.0  
-**Status:** Baseline for Phase 1  
-**Source:** Product Vision v1.0  
+**Version:** 1.1  
+**Status:** Baseline for Phase 1 + Phase 2  
+**Source:** Product Vision v1.0; Phase 2 Ride + Padala plan  
 
 ## 1. Introduction
 
 ### 1.1 Purpose
-Define functional and non-functional requirements for the Bolantero Phase 1 food-delivery MVP.
+Define functional and non-functional requirements for Bolantero Phase 1 food delivery and Phase 2 motorcycle Ride + Padala.
 
 ### 1.2 Scope
-In scope: Customer, Merchant, Rider, Admin apps; identity verification; food catalog; order + delivery loop; delivery-fee revenue model; service areas Tacurong, Lambayong, Isulan.
+In scope: Customer, Merchant, Rider, Admin apps; identity verification; food catalog; order + delivery loop; motorcycle Ride and P2P Padala trips; delivery-fee and trip-fare revenue model; service areas Tacurong, Lambayong, Isulan.
 
-Out of scope (later phases): grocery, pharmacy, parcel, hardware; multi-stop/bulk/corporate/P2P UI; automated KYC vendor; full payment gateway settlement.
+Out of scope (later phases): grocery, pharmacy, hardware; cars/vans; multi-stop/bulk/corporate; scheduled/pre-book trips; surge pricing; auto-dispatch; in-app navigation; automated KYC vendor; full payment gateway settlement.
 
 ### 1.3 Definitions
-- **Platform fee:** delivery fee and optional COD handling fee only.
+- **Platform fee (food):** delivery fee and optional COD handling fee only.
+- **Platform fee (trips):** configured share of trip fare (`trips.platform_fee`). Never a merchant product commission.
+- **Trip:** merchant-less Ride or Padala booking in the `trips` domain.
 - **Verification level:** 1 Registered → 2 Customer → 3 Merchant → 4 Rider.
 
 ## 2. Stakeholders
 
 | Stakeholder | Need |
 |-------------|------|
-| Customer | Safe, tracked local food delivery |
+| Customer | Safe, tracked local food delivery, rides, and padala |
 | Merchant | Orders + delivery without sales commission |
-| Rider | Fair, transparent delivery work |
+| Rider | Fair, transparent food-delivery and trip work |
 | Administrator | Approvals, monitoring, fee control |
 | Business owner | Logistics-only revenue model |
 
@@ -73,6 +75,17 @@ Out of scope (later phases): grocery, pharmacy, parcel, hardware; multi-stop/bul
 | FR-RIDE-03 | Advance status: assigned → arrived → picked up → delivered | Must |
 | FR-RIDE-04 | Upload proof of delivery | Must |
 | FR-RIDE-05 | View earnings ledger from completed deliveries | Must |
+| FR-RIDE-06 | Rider inbox shows food deliveries and trips; accept is exclusive | Must |
+| FR-RIDE-07 | Trip status: requested → accepted → arrived_pickup → in_progress → completed | Must |
+
+### FR-TRIP — Ride and Padala
+| ID | Requirement | Priority |
+|----|-------------|----------|
+| FR-TRIP-01 | Customer picks Ride or Padala and sets pickup + dropoff in a launch area | Must |
+| FR-TRIP-02 | System returns a fare quote before confirm (`quote_trip`) | Must |
+| FR-TRIP-03 | Level ≥ 2 can `request_trip`; creates trip in `requested` | Must |
+| FR-TRIP-04 | Padala requires item description + recipient contact | Must |
+| FR-TRIP-05 | Customer tracks status realtime and can cancel while `requested` | Must |
 
 ### FR-ADMIN — Administration
 | ID | Requirement | Priority |
@@ -82,13 +95,17 @@ Out of scope (later phases): grocery, pharmacy, parcel, hardware; multi-stop/bul
 | FR-ADMIN-03 | Live delivery monitoring | Must |
 | FR-ADMIN-04 | Configure delivery fee rules | Must |
 | FR-ADMIN-05 | Reports separating merchant product revenue vs platform fees | Must |
+| FR-ADMIN-06 | Live trip monitor | Must |
+| FR-ADMIN-07 | Configure ride vs padala fare rules | Must |
 
 ### FR-FEE — Pricing & money
 | ID | Requirement | Priority |
 |----|-------------|----------|
 | FR-FEE-01 | Fee engine: base + distance + type surcharge + optional COD fee | Must |
 | FR-FEE-02 | `orders.subtotal` never reduced by platform commission | Must |
-| FR-FEE-03 | Platform revenue recorded only as delivery/COD fee payments | Must |
+| FR-FEE-03 | Food platform revenue recorded only as delivery/COD fee payments | Must |
+| FR-FEE-04 | Trip fare never writes `orders.subtotal` or a merchant payee | Must |
+| FR-FEE-05 | `trips.fare = platform_fee + rider_earning` | Must |
 
 ## 4. Non-functional requirements
 
@@ -97,7 +114,7 @@ Out of scope (later phases): grocery, pharmacy, parcel, hardware; multi-stop/bul
 | NFR-SEC-01 | Row Level Security on all business tables | Must |
 | NFR-SEC-02 | Private storage for IDs, selfies, POD | Must |
 | NFR-PRIV-01 | Personal data minimized; verification docs access limited to owner/admin | Must |
-| NFR-PERF-01 | Order/delivery status updates via realtime within interactive UX | Should |
+| NFR-PERF-01 | Order, delivery, and trip status updates via realtime within interactive UX | Should |
 | NFR-REL-01 | Schema changes via versioned migrations only | Must |
 | NFR-MAIN-01 | Monorepo with shared domain packages | Must |
 | NFR-USAB-01 | Mobile-first customer/rider; ops-dense merchant/admin | Should |
@@ -108,10 +125,11 @@ Out of scope (later phases): grocery, pharmacy, parcel, hardware; multi-stop/bul
 - Stack: Expo + Next.js + Supabase
 - COD + recorded online intent only in MVP (no full PSP settlement)
 
-## 6. Acceptance for MVP release
+## 6. Acceptance for Phase 2 release
 
-1. Seeded demo users complete happy path: order → merchant confirm → rider deliver → rate.
-2. Admin can approve verification and configure fees.
-3. Reports prove zero product commission.
-4. CI lint/typecheck/unit tests pass.
-5. Requirements in this SRS mapped in TRACEABILITY.md.
+1. Seeded demo users complete food happy path: order → merchant confirm → rider deliver → rate.
+2. Seeded demo users complete Ride and Padala: quote → request → rider accept/advance → complete.
+3. Admin can approve verification and configure food + trip fare rules.
+4. Reports prove zero product commission and separate trip platform fees.
+5. CI lint/typecheck/unit tests pass.
+6. Requirements in this SRS mapped in TRACEABILITY.md.

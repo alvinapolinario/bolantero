@@ -6,9 +6,11 @@ import { Shell } from "@/components/Shell";
 import { createClient } from "@/lib/supabase/client";
 
 type Payment = Tables<"payments">;
+type TripPayment = Tables<"trip_payments">;
 
 export default function ReportsPage() {
   const [payments, setPayments] = useState<Payment[]>([]);
+  const [tripPayments, setTripPayments] = useState<TripPayment[]>([]);
 
   useEffect(() => {
     const supabase = createClient();
@@ -16,17 +18,24 @@ export default function ReportsPage() {
       .from("payments")
       .select("*")
       .then(({ data }) => setPayments(data ?? []));
+    supabase
+      .from("trip_payments")
+      .select("*")
+      .then(({ data }) => setTripPayments(data ?? []));
   }, []);
 
   const summary = useMemo(() => {
     const merchantProduct = payments
       .filter((p) => p.payee === "merchant")
       .reduce((s, p) => s + Number(p.amount), 0);
-    const platform = payments
+    const foodPlatform = payments
       .filter((p) => p.payee === "platform")
       .reduce((s, p) => s + Number(p.amount), 0);
-    return { merchantProduct, platform };
-  }, [payments]);
+    const tripPlatform = tripPayments
+      .filter((p) => p.payee === "platform")
+      .reduce((s, p) => s + Number(p.amount), 0);
+    return { merchantProduct, foodPlatform, tripPlatform };
+  }, [payments, tripPayments]);
 
   return (
     <Shell title="Platform reports">
@@ -39,11 +48,18 @@ export default function ReportsPage() {
           <p className="muted">Paid fully to merchants — zero commission.</p>
         </section>
         <section className="card">
-          <h2 style={{ marginTop: 0 }}>Bolantero logistics revenue</h2>
+          <h2 style={{ marginTop: 0 }}>Food logistics revenue</h2>
           <p style={{ fontSize: 36, margin: 0, fontFamily: "var(--bol-font-display)" }}>
-            ₱{summary.platform.toFixed(2)}
+            ₱{summary.foodPlatform.toFixed(2)}
           </p>
           <p className="muted">Delivery fees + COD handling fees only.</p>
+        </section>
+        <section className="card">
+          <h2 style={{ marginTop: 0 }}>Trip platform revenue</h2>
+          <p style={{ fontSize: 36, margin: 0, fontFamily: "var(--bol-font-display)" }}>
+            ₱{summary.tripPlatform.toFixed(2)}
+          </p>
+          <p className="muted">Ride + Padala platform fees. No merchant payee.</p>
         </section>
       </div>
     </Shell>

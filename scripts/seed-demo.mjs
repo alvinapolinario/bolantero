@@ -192,6 +192,114 @@ async function main() {
     last_lng: 124.8472,
   });
 
+  await admin.from("trips").delete().eq("trip_number", "TRP-DEMO-RIDE1");
+  const { data: demoRide, error: rideError } = await admin
+    .from("trips")
+    .insert({
+      trip_number: "TRP-DEMO-RIDE1",
+      customer_id: ids.customer,
+      rider_id: ids.rider,
+      service_type: "ride",
+      service_area_code: "tacurong",
+      status: "completed",
+      pickup_label: "City Hall",
+      pickup_line1: "National Highway",
+      pickup_barangay: "Poblacion",
+      pickup_city: "Tacurong City",
+      pickup_lat: 6.6925,
+      pickup_lng: 124.8472,
+      dropoff_label: "Public Market",
+      dropoff_line1: "Bonifacio Street",
+      dropoff_barangay: "Poblacion",
+      dropoff_city: "Tacurong City",
+      dropoff_lat: 6.695,
+      dropoff_lng: 124.85,
+      distance_km: 0.4,
+      payment_method: "cod",
+      fare: 40,
+      platform_fee: 8,
+      rider_earning: 32,
+      size_surcharge: 0,
+      completed_at: new Date().toISOString(),
+    })
+    .select("*")
+    .single();
+  if (rideError) throw rideError;
+  await admin.from("trip_payments").delete().eq("trip_id", demoRide.id);
+  await admin.from("trip_payments").insert([
+    {
+      trip_id: demoRide.id,
+      kind: "platform_fee",
+      amount: 8,
+      method: "cod",
+      status: "pending",
+      payee: "platform",
+    },
+    {
+      trip_id: demoRide.id,
+      kind: "rider_payout",
+      amount: 32,
+      method: "cod",
+      status: "pending",
+      payee: "rider",
+    },
+  ]);
+
+  await admin.from("trips").delete().eq("trip_number", "TRP-DEMO-PAD1");
+  const { data: demoPadala, error: padalaError } = await admin
+    .from("trips")
+    .insert({
+      trip_number: "TRP-DEMO-PAD1",
+      customer_id: ids.customer,
+      service_type: "courier",
+      service_area_code: "tacurong",
+      status: "requested",
+      pickup_label: "City Hall",
+      pickup_line1: "National Highway",
+      pickup_barangay: "Poblacion",
+      pickup_city: "Tacurong City",
+      pickup_lat: 6.6925,
+      pickup_lng: 124.8472,
+      dropoff_label: "Public Market",
+      dropoff_line1: "Bonifacio Street",
+      dropoff_barangay: "Poblacion",
+      dropoff_city: "Tacurong City",
+      dropoff_lat: 6.695,
+      dropoff_lng: 124.85,
+      distance_km: 0.4,
+      payment_method: "cod",
+      fare: 49,
+      platform_fee: 9.8,
+      rider_earning: 39.2,
+      size_surcharge: 0,
+      parcel_size: "small",
+      parcel_description: "Documents",
+      recipient_name: "Demo Recipient",
+      recipient_phone: "+639171111111",
+    })
+    .select("*")
+    .single();
+  if (padalaError) throw padalaError;
+  await admin.from("trip_payments").insert([
+    {
+      trip_id: demoPadala.id,
+      kind: "platform_fee",
+      amount: 9.8,
+      method: "cod",
+      status: "pending",
+      payee: "platform",
+    },
+    {
+      trip_id: demoPadala.id,
+      kind: "rider_payout",
+      amount: 39.2,
+      method: "cod",
+      status: "pending",
+      payee: "rider",
+    },
+  ]);
+  console.log("✓ demo ride (completed) + padala (requested)");
+
   console.log("\nDemo accounts ready (password: password123)");
   console.log("- admin@bolantero.local");
   console.log("- customer@bolantero.local");

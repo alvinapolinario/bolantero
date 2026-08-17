@@ -1,13 +1,19 @@
 import { useEffect, useMemo, useState } from "react";
 import { FlatList, Pressable, StyleSheet, Text, View } from "react-native";
+import { tripServiceLabel } from "@bolantero/shared";
 import type { Tables } from "@bolantero/database";
 import { supabase } from "../lib/supabase";
 import { theme } from "../theme";
 
 type Delivery = Tables<"deliveries">;
+type Trip = Tables<"trips">;
+
+type LedgerItem =
+  | { kind: "food"; id: string; at: string; amount: number }
+  | { kind: "trip"; id: string; at: string; amount: number; service: Trip["service_type"] };
 
 export function EarningsScreen({ onBack }: { onBack: () => void }) {
-  const [rows, setRows] = useState<Delivery[]>([]);
+  const [items, setItems] = useState<LedgerItem[]>([]);
 
   useEffect(() => {
     (async () => {
@@ -15,19 +21,43 @@ export function EarningsScreen({ onBack }: { onBack: () => void }) {
         data: { user },
       } = await supabase.auth.getUser();
       if (!user) return;
-      const { data } = await supabase
-        .from("deliveries")
-        .select("*")
-        .eq("rider_id", user.id)
-        .eq("status", "delivered")
-        .order("delivered_at", { ascending: false });
-      setRows(data ?? []);
+      const [{ data: deliveries }, { data: trips }] = await Promise.all([
+        supabase
+          .from("deliveries")
+          .select("*")
+          .eq("rider_id", user.id)
+          .eq("status", "delivered")
+          .order("delivered_at", { ascending: false }),
+        supabase
+          .from("trips")
+          .select("*")
+          .eq("rider_id", user.id)
+          .eq("status", "completed")
+          .order("completed_at", { ascending: false }),
+      ]);
+
+      const food: LedgerItem[] = (deliveries ?? []).map((row: Delivery) => ({
+        kind: "food",
+        id: row.id,
+        at: row.delivered_at ?? row.updated_at,
+        amount: Number(row.rider_earning),
+      }));
+      const tripRows: LedgerItem[] = (trips ?? []).map((row: Trip) => ({
+        kind: "trip",
+        id: row.id,
+        at: row.completed_at ?? row.updated_at,
+        amount: Number(row.rider_earning),
+        service: row.service_type,
+      }));
+      setItems(
+        [...food, ...tripRows].sort((a, b) => (a.at < b.at ? 1 : -1)),
+      );
     })();
   }, []);
 
   const total = useMemo(
-    () => rows.reduce((sum, row) => sum + Number(row.rider_earning), 0),
-    [rows],
+    () => items.reduce((sum, row) => sum + row.amount, 0),
+    [items],
   );
 
   return (
@@ -37,23 +67,20 @@ export function EarningsScreen({ onBack }: { onBack: () => void }) {
       </Pressable>
       <Text style={styles.title}>Earnings ledger</Text>
       <View style={styles.card}>
-        <Text style={styles.sub}>Completed deliveries</Text>
+        <Text style={styles.sub}>Completed food jobs + trips</Text>
         <Text style={styles.total}>₱{total.toFixed(2)}</Text>
         <Text style={styles.sub}>MVP ledger only — payouts configured later.</Text>
       </View>
       <FlatList
-        data={rows}
+        data={items}
         keyExtractor={(item) => item.id}
         contentContainerStyle={{ gap: 10, paddingVertical: 12 }}
         renderItem={({ item }) => (
           <View style={styles.rowCard}>
-            <Text style={{ fontWeight: "800" }}>
-              ₱{Number(item.rider_earning).toFixed(2)}
-            </Text>
+            <Text style={{ fontWeight: "800" }}>₱{item.amount.toFixed(2)}</Text>
             <Text style={styles.sub}>
-              {item.delivered_at
-                ? new Date(item.delivered_at).toLocaleString()
-                : "Delivered"}
+              {item.kind === "trip" ? tripServiceLabel(item.service) : "Food"} ·{" "}
+              {item.at ? new Date(item.at).toLocaleString() : "Completed"}
             </Text>
           </View>
         )}

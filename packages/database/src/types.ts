@@ -35,6 +35,17 @@ type DeliveryType =
 type PaymentMethod = "cod" | "online";
 type PaymentKind = "product" | "delivery" | "cod_fee";
 type PaymentStatus = "pending" | "paid" | "failed" | "refunded";
+type TripServiceType = "ride" | "courier";
+type TripStatus =
+  | "requested"
+  | "accepted"
+  | "arrived_pickup"
+  | "in_progress"
+  | "completed"
+  | "cancelled";
+type ParcelSize = "small" | "medium" | "large";
+type TripPaymentKind = "platform_fee" | "rider_payout";
+type TripPayee = "platform" | "rider";
 
 export type Database = {
   public: {
@@ -614,6 +625,243 @@ export type Database = {
         };
         Relationships: [];
       };
+      trip_fare_rules: {
+        Row: {
+          id: string;
+          name: string;
+          service_type: TripServiceType;
+          service_area_code: string | null;
+          base_fee: number;
+          free_km: number;
+          per_km_fee: number;
+          small_surcharge: number;
+          medium_surcharge: number;
+          large_surcharge: number;
+          platform_fee_bps: number;
+          is_active: boolean;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          name?: string;
+          service_type: TripServiceType;
+          service_area_code?: string | null;
+          base_fee?: number;
+          free_km?: number;
+          per_km_fee?: number;
+          small_surcharge?: number;
+          medium_surcharge?: number;
+          large_surcharge?: number;
+          platform_fee_bps?: number;
+          is_active?: boolean;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          name?: string;
+          service_type?: TripServiceType;
+          service_area_code?: string | null;
+          base_fee?: number;
+          free_km?: number;
+          per_km_fee?: number;
+          small_surcharge?: number;
+          medium_surcharge?: number;
+          large_surcharge?: number;
+          platform_fee_bps?: number;
+          is_active?: boolean;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      trips: {
+        Row: {
+          id: string;
+          trip_number: string;
+          customer_id: string;
+          rider_id: string | null;
+          service_type: TripServiceType;
+          service_area_code: string;
+          status: TripStatus;
+          pickup_label: string;
+          pickup_line1: string;
+          pickup_barangay: string;
+          pickup_city: string;
+          pickup_lat: number;
+          pickup_lng: number;
+          dropoff_label: string;
+          dropoff_line1: string;
+          dropoff_barangay: string;
+          dropoff_city: string;
+          dropoff_lat: number;
+          dropoff_lng: number;
+          distance_km: number;
+          payment_method: PaymentMethod;
+          fare: number;
+          platform_fee: number;
+          rider_earning: number;
+          size_surcharge: number;
+          parcel_size: ParcelSize | null;
+          parcel_description: string | null;
+          recipient_name: string | null;
+          recipient_phone: string | null;
+          parcel_photo_path: string | null;
+          notes: string | null;
+          cancel_reason: string | null;
+          accepted_at: string | null;
+          arrived_pickup_at: string | null;
+          started_at: string | null;
+          completed_at: string | null;
+          cancelled_at: string | null;
+          created_at: string;
+          updated_at: string;
+        };
+        Insert: {
+          id?: string;
+          trip_number: string;
+          customer_id: string;
+          rider_id?: string | null;
+          service_type: TripServiceType;
+          service_area_code: string;
+          status?: TripStatus;
+          pickup_label: string;
+          pickup_line1: string;
+          pickup_barangay: string;
+          pickup_city: string;
+          pickup_lat: number;
+          pickup_lng: number;
+          dropoff_label: string;
+          dropoff_line1: string;
+          dropoff_barangay: string;
+          dropoff_city: string;
+          dropoff_lat: number;
+          dropoff_lng: number;
+          distance_km?: number;
+          payment_method?: PaymentMethod;
+          fare: number;
+          platform_fee: number;
+          rider_earning: number;
+          size_surcharge?: number;
+          parcel_size?: ParcelSize | null;
+          parcel_description?: string | null;
+          recipient_name?: string | null;
+          recipient_phone?: string | null;
+          parcel_photo_path?: string | null;
+          notes?: string | null;
+          cancel_reason?: string | null;
+          accepted_at?: string | null;
+          arrived_pickup_at?: string | null;
+          started_at?: string | null;
+          completed_at?: string | null;
+          cancelled_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Update: {
+          id?: string;
+          trip_number?: string;
+          customer_id?: string;
+          rider_id?: string | null;
+          service_type?: TripServiceType;
+          service_area_code?: string;
+          status?: TripStatus;
+          pickup_label?: string;
+          pickup_line1?: string;
+          pickup_barangay?: string;
+          pickup_city?: string;
+          pickup_lat?: number;
+          pickup_lng?: number;
+          dropoff_label?: string;
+          dropoff_line1?: string;
+          dropoff_barangay?: string;
+          dropoff_city?: string;
+          dropoff_lat?: number;
+          dropoff_lng?: number;
+          distance_km?: number;
+          payment_method?: PaymentMethod;
+          fare?: number;
+          platform_fee?: number;
+          rider_earning?: number;
+          size_surcharge?: number;
+          parcel_size?: ParcelSize | null;
+          parcel_description?: string | null;
+          recipient_name?: string | null;
+          recipient_phone?: string | null;
+          parcel_photo_path?: string | null;
+          notes?: string | null;
+          cancel_reason?: string | null;
+          accepted_at?: string | null;
+          arrived_pickup_at?: string | null;
+          started_at?: string | null;
+          completed_at?: string | null;
+          cancelled_at?: string | null;
+          created_at?: string;
+          updated_at?: string;
+        };
+        Relationships: [];
+      };
+      trip_events: {
+        Row: {
+          id: string;
+          trip_id: string;
+          actor_id: string | null;
+          from_status: TripStatus | null;
+          to_status: TripStatus;
+          note: string | null;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          trip_id: string;
+          actor_id?: string | null;
+          from_status?: TripStatus | null;
+          to_status: TripStatus;
+          note?: string | null;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          trip_id?: string;
+          actor_id?: string | null;
+          from_status?: TripStatus | null;
+          to_status?: TripStatus;
+          note?: string | null;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
+      trip_payments: {
+        Row: {
+          id: string;
+          trip_id: string;
+          kind: TripPaymentKind;
+          amount: number;
+          method: PaymentMethod;
+          status: PaymentStatus;
+          payee: TripPayee;
+          created_at: string;
+        };
+        Insert: {
+          id?: string;
+          trip_id: string;
+          kind: TripPaymentKind;
+          amount: number;
+          method: PaymentMethod;
+          status?: PaymentStatus;
+          payee: TripPayee;
+          created_at?: string;
+        };
+        Update: {
+          id?: string;
+          trip_id?: string;
+          kind?: TripPaymentKind;
+          amount?: number;
+          method?: PaymentMethod;
+          status?: PaymentStatus;
+          payee?: TripPayee;
+          created_at?: string;
+        };
+        Relationships: [];
+      };
     };
     Views: {
       [_ in never]: never;
@@ -643,6 +891,55 @@ export type Database = {
         };
         Returns: Database["public"]["Tables"]["verification_submissions"]["Row"];
       };
+      quote_trip: {
+        Args: {
+          p_service_type: TripServiceType;
+          p_service_area_code: string;
+          p_pickup_lat: number;
+          p_pickup_lng: number;
+          p_dropoff_lat: number;
+          p_dropoff_lng: number;
+          p_parcel_size?: ParcelSize | null;
+        };
+        Returns: Json;
+      };
+      request_trip: {
+        Args: {
+          p_service_type: TripServiceType;
+          p_service_area_code: string;
+          p_pickup_label: string;
+          p_pickup_line1: string;
+          p_pickup_barangay: string;
+          p_pickup_city: string;
+          p_pickup_lat: number;
+          p_pickup_lng: number;
+          p_dropoff_label: string;
+          p_dropoff_line1: string;
+          p_dropoff_barangay: string;
+          p_dropoff_city: string;
+          p_dropoff_lat: number;
+          p_dropoff_lng: number;
+          p_payment_method: PaymentMethod;
+          p_parcel_size?: ParcelSize | null;
+          p_parcel_description?: string | null;
+          p_recipient_name?: string | null;
+          p_recipient_phone?: string | null;
+          p_notes?: string | null;
+        };
+        Returns: Database["public"]["Tables"]["trips"]["Row"];
+      };
+      accept_trip: {
+        Args: { p_trip_id: string };
+        Returns: Database["public"]["Tables"]["trips"]["Row"];
+      };
+      advance_trip: {
+        Args: { p_trip_id: string; p_to_status: TripStatus };
+        Returns: Database["public"]["Tables"]["trips"]["Row"];
+      };
+      cancel_trip: {
+        Args: { p_trip_id: string; p_reason?: string | null };
+        Returns: Database["public"]["Tables"]["trips"]["Row"];
+      };
     };
     Enums: {
       user_role: UserRole;
@@ -654,6 +951,11 @@ export type Database = {
       payment_method: PaymentMethod;
       payment_kind: PaymentKind;
       payment_status: PaymentStatus;
+      trip_service_type: TripServiceType;
+      trip_status: TripStatus;
+      parcel_size: ParcelSize;
+      trip_payment_kind: TripPaymentKind;
+      trip_payee: TripPayee;
     };
     CompositeTypes: {
       [_ in never]: never;

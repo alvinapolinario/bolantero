@@ -11,11 +11,11 @@
 
 ## 2. Priority test areas
 
-1. **Money invariant** — subtotal untouched; platform = delivery + COD fees
-2. **Verification gating** — Level 2+ for orders; Level 4 for accept delivery
-3. **Order state machine** — merchant transitions + rider transitions
+1. **Money invariant** — food subtotal untouched; platform = delivery + COD fees; trip fare = platform fee + rider earning; no merchant payee on trips
+2. **Verification gating** — Level 2+ for orders and trips; Level 4 for accept delivery/trip
+3. **Order and trip state machines** — merchant transitions + rider food/trip transitions
 4. **RLS** — users cannot read/write others’ private data
-5. **Fee rules** — base/distance/express/scheduled/COD
+5. **Fee rules** — food base/distance/express/scheduled/COD; trip base/distance/size + platform bps
 
 ## 3. MVP test cases (system)
 
@@ -28,6 +28,11 @@
 | TC-05 | Customer rates rider | Rating stored | FR-CUST-05 |
 | TC-06 | Admin reports | Merchant product ≠ platform fees | FR-ADMIN-05, FR-FEE-02 |
 | TC-07 | Unverified customer checkout | Rejected by `place_order` | FR-KYC-06 |
+| TC-08 | Unverified customer trip request | Rejected by `request_trip` | FR-TRIP-03 |
+| TC-09 | Quote then Ride request | Trip + trip_payments; no merchant | FR-TRIP-02/03, FR-FEE-04/05 |
+| TC-10 | Padala without recipient/item | Rejected by `request_trip` | FR-TRIP-04 |
+| TC-11 | Rider completes Ride; food still placeable | Earning recorded; `place_order` still works | FR-RIDE-06/07 |
+| TC-12 | Admin reports | Merchant product ≠ food fees ≠ trip platform fee | FR-ADMIN-05/06, FR-FEE-04 |
 
 Full operator script: [../HAPPY_PATH.md](../HAPPY_PATH.md)
 
@@ -44,5 +49,5 @@ Full operator script: [../HAPPY_PATH.md](../HAPPY_PATH.md)
 
 - All Must-priority FRs have at least one mapped test
 - Unit tests for fee engine passing in CI
-- Happy-path TC-01…TC-07 executed and recorded
+- Happy-path TC-01…TC-12 executed and recorded
 - No open S1/S2 defects

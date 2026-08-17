@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   FlatList,
   Linking,
@@ -8,7 +8,7 @@ import {
   View,
 } from "react-native";
 import * as ImagePicker from "expo-image-picker";
-import { verifiedBadgeLabel } from "@bolantero/shared";
+import { tripServiceLabel, verifiedBadgeLabel } from "@bolantero/shared";
 import type { Tables } from "@bolantero/database";
 import { supabase } from "../lib/supabase";
 import { theme } from "../theme";
@@ -23,12 +23,35 @@ type Delivery = Tables<"deliveries"> & {
   } | null;
 };
 
+type Trip = Tables<"trips">;
+type Filter = "all" | "ride" | "courier" | "food";
+
+type InboxItem =
+  | { kind: "food"; id: string; delivery: Delivery }
+  | { kind: "trip"; id: string; trip: Trip };
+
 export function JobsScreen({ onOpenEarnings }: { onOpenEarnings: () => void }) {
   const [online, setOnline] = useState(false);
-  const [jobs, setJobs] = useState<Delivery[]>([]);
-  const [active, setActive] = useState<Delivery | null>(null);
+  const [jobs, setJobs] = useState<InboxItem[]>([]);
+  const [activeDelivery, setActiveDelivery] = useState<Delivery | null>(null);
+  const [activeTrip, setActiveTrip] = useState<Trip | null>(null);
+  const [filter, setFilter] = useState<Filter>("all");
   const [level, setLevel] = useState(1);
   const [message, setMessage] = useState<string | null>(null);
+
+  async function enrichDelivery(row: Delivery): Promise<Delivery> {
+    const merchantId = row.orders?.merchant_id as string | undefined;
+    if (!merchantId) return row;
+    const { data: merchant } = await supabase
+      .from("merchants")
+      .select("name, address_line")
+      .eq("id", merchantId)
+      .maybeSingle();
+    return {
+      ...row,
+      orders: row.orders ? { ...row.orders, merchants: merchant } : null,
+    };
+  }
 
   async function refresh() {
     const {
@@ -50,58 +73,55 @@ export function JobsScreen({ onOpenEarnings }: { onOpenEarnings: () => void }) {
       .maybeSingle();
     setOnline(presence?.is_online ?? false);
 
-    const { data: available } = await supabase
+    const { data: availableFood } = await supabase
       .from("deliveries")
       .select("*, orders(order_number, status, delivery_fee, merchant_id)")
       .eq("status", "awaiting_rider")
       .order("created_at", { ascending: true });
 
-    const enriched: Delivery[] = [];
-    for (const row of available ?? []) {
-      const merchantId = row.orders?.merchant_id as string | undefined;
-      let merchants = null;
-      if (merchantId) {
-        const { data: merchant } = await supabase
-          .from("merchants")
-          .select("name, address_line")
-          .eq("id", merchantId)
-          .maybeSingle();
-        merchants = merchant;
-      }
-      enriched.push({
-        ...row,
-        orders: row.orders
-          ? { ...row.orders, merchants }
-          : null,
-      } as Delivery);
+    const foodItems: InboxItem[] = [];
+    for (const row of availableFood ?? []) {
+      foodItems.push({
+        kind: "food",
+        id: row.id,
+        delivery: await enrichDelivery(row as Delivery),
+      });
     }
-    setJobs(enriched);
 
-    const { data: mine } = await supabase
+    const { data: availableTrips } = await supabase
+      .from("trips")
+      .select("*")
+      .eq("status", "requested")
+      .order("created_at", { ascending: true });
+
+    const tripItems: InboxItem[] = (availableTrips ?? []).map((trip) => ({
+      kind: "trip" as const,
+      id: trip.id,
+      trip,
+    }));
+
+    setJobs([...tripItems, ...foodItems]);
+
+    const { data: mineFood } = await supabase
       .from("deliveries")
       .select("*, orders(order_number, status, delivery_fee, merchant_id)")
       .eq("rider_id", user.id)
       .in("status", ["assigned", "arrived_store", "picked_up"])
       .maybeSingle();
 
-    if (mine) {
-      const merchantId = mine.orders?.merchant_id as string | undefined;
-      let merchants = null;
-      if (merchantId) {
-        const { data: merchant } = await supabase
-          .from("merchants")
-          .select("name, address_line")
-          .eq("id", merchantId)
-          .maybeSingle();
-        merchants = merchant;
-      }
-      setActive({
-        ...mine,
-        orders: mine.orders ? { ...mine.orders, merchants } : null,
-      } as Delivery);
+    if (mineFood) {
+      setActiveDelivery(await enrichDelivery(mineFood as Delivery));
     } else {
-      setActive(null);
+      setActiveDelivery(null);
     }
+
+    const { data: mineTrip } = await supabase
+      .from("trips")
+      .select("*")
+      .eq("rider_id", user.id)
+      .in("status", ["accepted", "arrived_pickup", "in_progress"])
+      .maybeSingle();
+    setActiveTrip(mineTrip ?? null);
   }
 
   useEffect(() => {
@@ -111,6 +131,11 @@ export function JobsScreen({ onOpenEarnings }: { onOpenEarnings: () => void }) {
       .on(
         "postgres_changes",
         { event: "*", schema: "public", table: "deliveries" },
+        () => refresh(),
+      )
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "trips" },
         () => refresh(),
       )
       .subscribe();
@@ -134,31 +159,47 @@ export function JobsScreen({ onOpenEarnings }: { onOpenEarnings: () => void }) {
     setOnline(next);
   }
 
-  async function accept(jobId: string) {
+  async function acceptFood(jobId: string) {
     const { error } = await supabase.rpc("accept_delivery", {
       p_delivery_id: jobId,
     });
-    setMessage(error ? error.message : "Job accepted.");
+    setMessage(error ? error.message : "Food job accepted.");
     await refresh();
   }
 
-  async function advance(status: Delivery["status"]) {
-    if (!active) return;
+  async function acceptTrip(jobId: string) {
+    const { error } = await supabase.rpc("accept_trip", { p_trip_id: jobId });
+    setMessage(error ? error.message : "Trip accepted.");
+    await refresh();
+  }
+
+  async function advanceFood(status: Delivery["status"]) {
+    if (!activeDelivery) return;
     const patch: Record<string, unknown> = { status };
     if (status === "picked_up") patch.picked_up_at = new Date().toISOString();
     if (status === "delivered") patch.delivered_at = new Date().toISOString();
-    await supabase.from("deliveries").update(patch).eq("id", active.id);
+    await supabase.from("deliveries").update(patch).eq("id", activeDelivery.id);
     if (status === "delivered") {
       await supabase
         .from("orders")
         .update({ status: "completed" })
-        .eq("id", active.order_id);
+        .eq("id", activeDelivery.order_id);
     }
     await refresh();
   }
 
+  async function advanceTrip(to: Trip["status"]) {
+    if (!activeTrip) return;
+    const { error } = await supabase.rpc("advance_trip", {
+      p_trip_id: activeTrip.id,
+      p_to_status: to,
+    });
+    setMessage(error ? error.message : `Trip ${to}.`);
+    await refresh();
+  }
+
   async function uploadProof() {
-    if (!active) return;
+    if (!activeDelivery) return;
     const result = await ImagePicker.launchImageLibraryAsync({
       mediaTypes: ["images"],
       quality: 0.7,
@@ -182,18 +223,28 @@ export function JobsScreen({ onOpenEarnings }: { onOpenEarnings: () => void }) {
     await supabase
       .from("deliveries")
       .update({ proof_image_path: path })
-      .eq("id", active.id);
+      .eq("id", activeDelivery.id);
     setMessage("Proof of delivery uploaded.");
     await refresh();
   }
 
-  function openMaps() {
-    if (!active?.dropoff_lat || !active.dropoff_lng) return;
-    const url = `https://www.google.com/maps/dir/?api=1&destination=${active.dropoff_lat},${active.dropoff_lng}`;
-    Linking.openURL(url);
+  function openMaps(lat?: number | null, lng?: number | null) {
+    if (!lat || !lng) return;
+    Linking.openURL(
+      `https://www.google.com/maps/dir/?api=1&destination=${lat},${lng}`,
+    );
   }
 
   const badge = verifiedBadgeLabel(level);
+  const filteredJobs = useMemo(
+    () =>
+      jobs.filter((item) => {
+        if (filter === "all") return true;
+        if (filter === "food") return item.kind === "food";
+        return item.kind === "trip" && item.trip.service_type === filter;
+      }),
+    [jobs, filter],
+  );
 
   return (
     <View style={styles.container}>
@@ -214,37 +265,97 @@ export function JobsScreen({ onOpenEarnings }: { onOpenEarnings: () => void }) {
         </View>
       </View>
 
+      <View style={styles.row}>
+        {(["all", "ride", "courier", "food"] as Filter[]).map((value) => (
+          <Pressable
+            key={value}
+            style={[styles.chip, filter === value && styles.chipActive]}
+            onPress={() => setFilter(value)}
+          >
+            <Text style={{ color: filter === value ? "#fff" : theme.colors.ink, fontWeight: "700" }}>
+              {value === "courier" ? "Padala" : value === "ride" ? "Ride" : value === "food" ? "Food" : "All"}
+            </Text>
+          </Pressable>
+        ))}
+      </View>
+
       {message ? <Text style={styles.sub}>{message}</Text> : null}
 
-      {active ? (
+      {activeTrip ? (
         <View style={styles.card}>
-          <Text style={styles.cardTitle}>Active delivery</Text>
-          <Text style={styles.sub}>{active.orders?.order_number}</Text>
-          <Text style={styles.sub}>{active.orders?.merchants?.name}</Text>
-          <Text style={styles.sub}>Status: {active.status}</Text>
-          <Text style={styles.sub}>
-            Earning ₱{Number(active.rider_earning).toFixed(2)}
+          <Text style={styles.cardTitle}>
+            Active {tripServiceLabel(activeTrip.service_type)}
           </Text>
+          <Text style={styles.sub}>{activeTrip.trip_number}</Text>
+          <Text style={styles.sub}>
+            {activeTrip.pickup_label} → {activeTrip.dropoff_label}
+          </Text>
+          <Text style={styles.sub}>Status: {activeTrip.status}</Text>
+          <Text style={styles.sub}>
+            Fare ₱{Number(activeTrip.fare).toFixed(2)} · Earn ₱
+            {Number(activeTrip.rider_earning).toFixed(2)}
+          </Text>
+          {activeTrip.service_type === "courier" ? (
+            <Text style={styles.sub}>
+              {activeTrip.parcel_description} · {activeTrip.recipient_name}
+            </Text>
+          ) : null}
           <View style={styles.row}>
-            <Pressable style={styles.btnSecondary} onPress={openMaps}>
+            <Pressable
+              style={styles.btnSecondary}
+              onPress={() => openMaps(activeTrip.dropoff_lat, activeTrip.dropoff_lng)}
+            >
               <Text style={styles.btnSecondaryText}>Navigate</Text>
             </Pressable>
-            {active.status === "assigned" ? (
-              <Pressable style={styles.btn} onPress={() => advance("arrived_store")}>
+            {activeTrip.status === "accepted" ? (
+              <Pressable style={styles.btn} onPress={() => advanceTrip("arrived_pickup")}>
+                <Text style={styles.btnText}>Arrived pickup</Text>
+              </Pressable>
+            ) : null}
+            {activeTrip.status === "arrived_pickup" ? (
+              <Pressable style={styles.btn} onPress={() => advanceTrip("in_progress")}>
+                <Text style={styles.btnText}>Start trip</Text>
+              </Pressable>
+            ) : null}
+            {activeTrip.status === "in_progress" ? (
+              <Pressable style={styles.btn} onPress={() => advanceTrip("completed")}>
+                <Text style={styles.btnText}>Complete</Text>
+              </Pressable>
+            ) : null}
+          </View>
+        </View>
+      ) : activeDelivery ? (
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>Active food delivery</Text>
+          <Text style={styles.sub}>{activeDelivery.orders?.order_number}</Text>
+          <Text style={styles.sub}>{activeDelivery.orders?.merchants?.name}</Text>
+          <Text style={styles.sub}>Status: {activeDelivery.status}</Text>
+          <Text style={styles.sub}>
+            Earning ₱{Number(activeDelivery.rider_earning).toFixed(2)}
+          </Text>
+          <View style={styles.row}>
+            <Pressable
+              style={styles.btnSecondary}
+              onPress={() => openMaps(activeDelivery.dropoff_lat, activeDelivery.dropoff_lng)}
+            >
+              <Text style={styles.btnSecondaryText}>Navigate</Text>
+            </Pressable>
+            {activeDelivery.status === "assigned" ? (
+              <Pressable style={styles.btn} onPress={() => advanceFood("arrived_store")}>
                 <Text style={styles.btnText}>Arrived store</Text>
               </Pressable>
             ) : null}
-            {active.status === "arrived_store" ? (
-              <Pressable style={styles.btn} onPress={() => advance("picked_up")}>
+            {activeDelivery.status === "arrived_store" ? (
+              <Pressable style={styles.btn} onPress={() => advanceFood("picked_up")}>
                 <Text style={styles.btnText}>Picked up</Text>
               </Pressable>
             ) : null}
-            {active.status === "picked_up" ? (
+            {activeDelivery.status === "picked_up" ? (
               <>
                 <Pressable style={styles.btnSecondary} onPress={uploadProof}>
                   <Text style={styles.btnSecondaryText}>Upload POD</Text>
                 </Pressable>
-                <Pressable style={styles.btn} onPress={() => advance("delivered")}>
+                <Pressable style={styles.btn} onPress={() => advanceFood("delivered")}>
                   <Text style={styles.btnText}>Delivered</Text>
                 </Pressable>
               </>
@@ -253,30 +364,52 @@ export function JobsScreen({ onOpenEarnings }: { onOpenEarnings: () => void }) {
         </View>
       ) : (
         <FlatList
-          data={online ? jobs : []}
+          data={online ? filteredJobs : []}
           keyExtractor={(item) => item.id}
           contentContainerStyle={{ gap: 12, paddingVertical: 12 }}
           ListEmptyComponent={
             <Text style={styles.sub}>
               {online
                 ? "No available jobs right now."
-                : "Go online to see delivery requests."}
+                : "Go online to see ride, padala, and food jobs."}
             </Text>
           }
-          renderItem={({ item }) => (
-            <View style={styles.card}>
-              <Text style={styles.cardTitle}>{item.orders?.order_number}</Text>
-              <Text style={styles.sub}>{item.orders?.merchants?.name}</Text>
-              <Text style={styles.sub}>{item.orders?.merchants?.address_line}</Text>
-              <Text style={styles.sub}>
-                Fee ₱{Number(item.orders?.delivery_fee ?? 0).toFixed(2)} · Earn ₱
-                {Number(item.rider_earning).toFixed(2)}
-              </Text>
-              <Pressable style={styles.btn} onPress={() => accept(item.id)}>
-                <Text style={styles.btnText}>Accept job</Text>
-              </Pressable>
-            </View>
-          )}
+          renderItem={({ item }) =>
+            item.kind === "trip" ? (
+              <View style={styles.card}>
+                <Text style={styles.cardTitle}>
+                  {tripServiceLabel(item.trip.service_type)} · {item.trip.trip_number}
+                </Text>
+                <Text style={styles.sub}>
+                  {item.trip.pickup_label} → {item.trip.dropoff_label}
+                </Text>
+                <Text style={styles.sub}>
+                  Fare ₱{Number(item.trip.fare).toFixed(2)} · Earn ₱
+                  {Number(item.trip.rider_earning).toFixed(2)}
+                </Text>
+                <Pressable style={styles.btn} onPress={() => acceptTrip(item.trip.id)}>
+                  <Text style={styles.btnText}>Accept trip</Text>
+                </Pressable>
+              </View>
+            ) : (
+              <View style={styles.card}>
+                <Text style={styles.cardTitle}>
+                  Food · {item.delivery.orders?.order_number}
+                </Text>
+                <Text style={styles.sub}>{item.delivery.orders?.merchants?.name}</Text>
+                <Text style={styles.sub}>
+                  {item.delivery.orders?.merchants?.address_line}
+                </Text>
+                <Text style={styles.sub}>
+                  Fee ₱{Number(item.delivery.orders?.delivery_fee ?? 0).toFixed(2)} · Earn ₱
+                  {Number(item.delivery.rider_earning).toFixed(2)}
+                </Text>
+                <Pressable style={styles.btn} onPress={() => acceptFood(item.delivery.id)}>
+                  <Text style={styles.btnText}>Accept job</Text>
+                </Pressable>
+              </View>
+            )
+          }
         />
       )}
     </View>
@@ -320,6 +453,15 @@ const styles = StyleSheet.create({
   },
   cardTitle: { fontWeight: "800", fontSize: 16 },
   row: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 12 },
+  chip: {
+    borderWidth: 1,
+    borderColor: theme.colors.line,
+    borderRadius: 999,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    backgroundColor: theme.colors.bgElevated,
+  },
+  chipActive: { backgroundColor: theme.colors.brand, borderColor: theme.colors.brand },
   btn: {
     backgroundColor: theme.colors.brand,
     borderRadius: 10,

@@ -16,11 +16,13 @@ type Merchant = Tables<"merchants">;
 type Profile = Tables<"profiles">;
 
 export function HomeScreen({
+  onBack,
   onOpenMerchant,
   onOpenCart,
   onOpenOrders,
   onOpenVerify,
 }: {
+  onBack: () => void;
   onOpenMerchant: (merchant: Merchant) => void;
   onOpenCart: () => void;
   onOpenOrders: () => void;
@@ -65,8 +67,11 @@ export function HomeScreen({
     <View style={styles.container}>
       <View style={styles.header}>
         <View>
-          <Text style={styles.brand}>Bolantero</Text>
-          <Text style={styles.sub}>Food delivery · SK launch cities</Text>
+          <Pressable onPress={onBack}>
+            <Text style={styles.link}>← Services</Text>
+          </Pressable>
+          <Text style={styles.brand}>Food</Text>
+          <Text style={styles.sub}>Phase 1 merchants · SK launch cities</Text>
           {badge ? <Text style={styles.badge}>{badge}</Text> : null}
         </View>
         <View style={styles.actions}>

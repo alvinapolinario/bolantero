@@ -29,3 +29,24 @@ export const VERIFICATION_STATUSES = [
 ] as const;
 
 export type VerificationStatus = (typeof VERIFICATION_STATUSES)[number];
+
+export const TRIP_STATUSES = [
+  "requested",
+  "accepted",
+  "arrived_pickup",
+  "in_progress",
+  "completed",
+  "cancelled",
+] as const;
+
+export type TripStatus = (typeof TRIP_STATUSES)[number];
+
+export const TRIP_NEXT_STATUS: Partial<Record<TripStatus, TripStatus>> = {
+  accepted: "arrived_pickup",
+  arrived_pickup: "in_progress",
+  in_progress: "completed",
+};
+
+export function tripServiceLabel(type: "ride" | "courier"): string {
+  return type === "ride" ? "Ride" : "Padala";
+}

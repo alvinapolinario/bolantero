@@ -18,7 +18,7 @@
 
 ## 3. Monitoring (MVP → next)
 
-MVP: manual ops via Admin live deliveries + reports.  
+MVP: manual ops via Admin live deliveries, live trips, and reports.  
 Next: error tracking, uptime checks, auth failure alerts, fee anomaly reports.
 
 ## 4. Continuous improvement

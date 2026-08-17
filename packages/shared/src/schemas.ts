@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { DELIVERY_TYPES } from "./constants";
+import { DELIVERY_TYPES, PARCEL_SIZES, TRIP_SERVICE_TYPES } from "./constants";
 import { USER_ROLES } from "./roles";
 
 export const phoneSchema = z
@@ -52,3 +52,50 @@ export const verificationSubmitSchema = z.object({
   idType: z.string().min(2).max(60),
   idNumber: z.string().min(3).max(60),
 });
+
+export const tripStopSchema = z.object({
+  label: z.string().min(1).max(40),
+  line1: z.string().min(3).max(160),
+  barangay: z.string().min(2).max(80),
+  city: z.string().min(2).max(80),
+  lat: z.number().min(-90).max(90),
+  lng: z.number().min(-180).max(180),
+});
+
+export const tripRequestSchema = z
+  .object({
+    serviceType: z.enum(TRIP_SERVICE_TYPES),
+    serviceAreaCode: z.enum(["tacurong", "lambayong", "isulan"]),
+    pickup: tripStopSchema,
+    dropoff: tripStopSchema,
+    paymentMethod: z.enum(["cod", "online"]),
+    parcelSize: z.enum(PARCEL_SIZES).optional().nullable(),
+    parcelDescription: z.string().max(300).optional().nullable(),
+    recipientName: z.string().max(80).optional().nullable(),
+    recipientPhone: phoneSchema.optional().nullable(),
+    notes: z.string().max(300).optional().nullable(),
+  })
+  .superRefine((value, ctx) => {
+    if (value.serviceType !== "courier") return;
+    if (!value.parcelDescription?.trim()) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["parcelDescription"],
+        message: "Padala requires an item description",
+      });
+    }
+    if (!value.recipientName?.trim()) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["recipientName"],
+        message: "Padala requires a recipient name",
+      });
+    }
+    if (!value.recipientPhone) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["recipientPhone"],
+        message: "Padala requires a recipient phone",
+      });
+    }
+  });

@@ -6,6 +6,7 @@ const links = [
   { href: "/verifications", label: "Verifications" },
   { href: "/merchants", label: "Merchants" },
   { href: "/deliveries", label: "Live Deliveries" },
+  { href: "/trips", label: "Live Trips" },
   { href: "/fees", label: "Fee Rules" },
   { href: "/reports", label: "Reports" },
 ];
@@ -23,7 +24,7 @@ export function Shell({
         <p className="badge">{APP_NAME} Admin</p>
         <h1 style={{ margin: "10px 0 4px" }}>{title}</h1>
         <p className="muted" style={{ margin: 0 }}>
-          Identity review, approvals, pricing, and delivery operations.
+          Identity review, approvals, pricing, food deliveries, and trips.
         </p>
       </header>
       <nav className="nav">

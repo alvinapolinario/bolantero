@@ -28,14 +28,25 @@ Maps baseline requirements → primary implementation → verification.
 | FR-RIDE-03 | status advance | TC-04 |
 | FR-RIDE-04 | POD upload storage | TC-04 |
 | FR-RIDE-05 | EarningsScreen | TC-04 |
+| FR-RIDE-06 | rider JobsScreen food + trips inbox | TC-11 |
+| FR-RIDE-07 | `advance_trip` status machine | TC-11 |
+| FR-TRIP-01 | `apps/customer/.../ServicesScreen`, `BookTripScreen` | TC-09 |
+| FR-TRIP-02 | `quote_trip` + `packages/shared/trip-fees` | Unit + TC-09 |
+| FR-TRIP-03 | `request_trip` verification_level ≥ 2 | TC-08/09 |
+| FR-TRIP-04 | `request_trip` courier field checks | TC-10 |
+| FR-TRIP-05 | TripTrackScreen + `cancel_trip` | TC-09 |
 | FR-ADMIN-01 | verifications page | TC-01 |
 | FR-ADMIN-02 | merchants page | Manual |
 | FR-ADMIN-03 | deliveries page | TC-04 |
 | FR-ADMIN-04 | fees page | Unit + manual |
-| FR-ADMIN-05 | admin reports | TC-06 |
+| FR-ADMIN-05 | admin reports | TC-06, TC-12 |
+| FR-ADMIN-06 | `apps/admin/trips` | TC-12 |
+| FR-ADMIN-07 | admin fees trip rules | Unit + manual |
 | FR-FEE-01 | `packages/shared/fees` + RPC | Unit tests + TC-02 |
 | FR-FEE-02 | schema checks + RPC payments | Unit + TC-06 |
 | FR-FEE-03 | `payments.payee` split | TC-06 |
+| FR-FEE-04 | `trip_payments` payee check + `request_trip` | Unit + TC-09/12 |
+| FR-FEE-05 | `trips` fare-split constraint + trip-fees | Unit + TC-09 |
 | NFR-SEC-01 | RLS in migrations | RLS smoke (HAPPY_PATH) |
 | NFR-SEC-02 | private buckets | Manual upload ACL |
 | NFR-REL-01 | `supabase/migrations` | CI/db reset |

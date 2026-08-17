@@ -39,11 +39,11 @@ A = Accountable, R = Responsible, C = Consulted, I = Informed
 
 ## Current lifecycle stage
 
-**MVP Phase 1 (Food Delivery)** — Implementation complete for local Tacurong / Lambayong / Isulan scope. Next gated work must open with a requirement ID from the backlog and close with tests mapped in [TRACEABILITY.md](TRACEABILITY.md).
+**Phase 2 (Ride + Padala)** — Motorcycle ride-hailing and P2P courier are in implementation for Tacurong / Lambayong / Isulan. Phase 1 food delivery stays working and is not expanded. Work must open with a requirement ID and close with tests mapped in [TRACEABILITY.md](TRACEABILITY.md).
 
 ## Non-negotiable engineering rules
 
-1. **Money invariant:** merchants keep 100% of `orders.subtotal`; platform earns only delivery/COD fees.
+1. **Money invariant:** merchants keep 100% of `orders.subtotal`; platform earns food delivery/COD fees and trip platform fees only. No product-sales commission.
 2. **Identity trust:** core actions gated by verification level.
 3. **No silent scope creep:** new delivery types / phases need requirement + design update first.
 4. **CI must pass** before merge to `main`.

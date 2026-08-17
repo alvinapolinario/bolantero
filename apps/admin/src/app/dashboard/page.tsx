@@ -9,14 +9,20 @@ export default function DashboardPage() {
     pendingVerifications: 0,
     pendingMerchants: 0,
     activeDeliveries: 0,
+    activeTrips: 0,
     ordersToday: 0,
   });
 
   useEffect(() => {
     const supabase = createClient();
     (async () => {
-      const [{ count: pendingVerifications }, { count: pendingMerchants }, { count: activeDeliveries }, { count: ordersToday }] =
-        await Promise.all([
+      const [
+        { count: pendingVerifications },
+        { count: pendingMerchants },
+        { count: activeDeliveries },
+        { count: activeTrips },
+        { count: ordersToday },
+      ] = await Promise.all([
           supabase
             .from("verification_submissions")
             .select("*", { count: "exact", head: true })
@@ -29,6 +35,10 @@ export default function DashboardPage() {
             .from("deliveries")
             .select("*", { count: "exact", head: true })
             .in("status", ["awaiting_rider", "assigned", "arrived_store", "picked_up"]),
+          supabase
+            .from("trips")
+            .select("*", { count: "exact", head: true })
+            .in("status", ["requested", "accepted", "arrived_pickup", "in_progress"]),
           supabase.from("orders").select("*", { count: "exact", head: true }),
         ]);
 
@@ -36,6 +46,7 @@ export default function DashboardPage() {
         pendingVerifications: pendingVerifications ?? 0,
         pendingMerchants: pendingMerchants ?? 0,
         activeDeliveries: activeDeliveries ?? 0,
+        activeTrips: activeTrips ?? 0,
         ordersToday: ordersToday ?? 0,
       });
     })();
@@ -48,6 +59,7 @@ export default function DashboardPage() {
           ["Pending verifications", stats.pendingVerifications],
           ["Merchant approvals", stats.pendingMerchants],
           ["Live deliveries", stats.activeDeliveries],
+          ["Live trips", stats.activeTrips],
           ["Orders tracked", stats.ordersToday],
         ].map(([label, value]) => (
           <section key={String(label)} className="card">

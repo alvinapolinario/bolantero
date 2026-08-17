@@ -4,7 +4,7 @@ Bolantero is a hyperlocal delivery platform connecting customers, merchants, and
 
 The name means **"Traders"** in the local dialect — a community-driven marketplace where local businesses reach customers through reliable logistics.
 
-Unlike commission-based delivery platforms, Bolantero operates as a **pure logistics service provider**. Merchants retain 100% of sales revenue. Bolantero earns exclusively from delivery-related service fees.
+Unlike commission-based delivery platforms, Bolantero operates as a **pure logistics and mobility service provider**. Merchants retain 100% of sales revenue. Bolantero earns from food delivery-related service fees and Ride/Padala trip fares (platform share only).
 
 **Guiding principle:** Real People. Verified Identities. Trusted Local Delivery.
 
