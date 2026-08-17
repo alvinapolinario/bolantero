@@ -6,6 +6,7 @@
 2. `pnpm db:start` then `pnpm db:reset`
 3. Copy keys into `.env` and app env files
 4. `pnpm seed`
+5. `pnpm api:smoke` (TC-08…TC-11 against live RPCs)
 
 ## 2. Identity
 

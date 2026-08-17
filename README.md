@@ -14,7 +14,9 @@ This project follows a formal iterative SDLC. Implementation work must be traced
 |----------|---------|
 | [docs/sdlc/00-OVERVIEW.md](docs/sdlc/00-OVERVIEW.md) | Process model & gates |
 | [docs/sdlc/01-REQUIREMENTS.md](docs/sdlc/01-REQUIREMENTS.md) | SRS (functional / non-functional) |
-| [docs/sdlc/02-ANALYSIS-DESIGN.md](docs/sdlc/02-ANALYSIS-DESIGN.md) | Architecture & ADRs |
+| [docs/sdlc/02-ANALYSIS-DESIGN.md](docs/sdlc/02-ANALYSIS-DESIGN.md) | System architecture & ADRs |
+| [docs/API.md](docs/API.md) | Supabase API contract (RPCs, auth, RLS) |
+| [docs/sdlc/PROGRESS.md](docs/sdlc/PROGRESS.md) | Implementation progress log |
 | [docs/sdlc/03-IMPLEMENTATION.md](docs/sdlc/03-IMPLEMENTATION.md) | Coding / DoD / branching |
 | [docs/sdlc/04-TESTING.md](docs/sdlc/04-TESTING.md) | Test strategy |
 | [docs/sdlc/05-DEPLOYMENT.md](docs/sdlc/05-DEPLOYMENT.md) | Release process |
@@ -72,8 +74,8 @@ cp apps/admin/.env.example apps/admin/.env.local
 Start Supabase and apply migrations:
 
 ```bash
-pnpm dlx supabase start
-pnpm dlx supabase db reset
+pnpm db:start
+pnpm db:reset
 ```
 
 Copy the printed `anon` and `service_role` keys into:
@@ -84,10 +86,11 @@ Copy the printed `anon` and `service_role` keys into:
 - `apps/customer/app.json` → `expo.extra`
 - `apps/rider/app.json` → `expo.extra`
 
-Seed demo users + launch merchants:
+Seed demo users + launch merchants, then smoke the API:
 
 ```bash
 node --env-file=.env scripts/seed-demo.mjs
+pnpm api:smoke
 ```
 
 ## Run apps

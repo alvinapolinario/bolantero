@@ -5,7 +5,7 @@
 | Level | Owner | Tooling | Focus |
 |-------|-------|---------|-------|
 | Unit | Engineering | Vitest (`packages/shared`) | Fee math, role gates, pure helpers |
-| Integration | Engineering | Supabase local + scripts | RPC money split, RLS smoke |
+| Integration | Engineering | Supabase local + `pnpm api:smoke` | RPC money split, KYC gates, RLS smoke |
 | System / E2E | QA + Engineering | Manual checklist → later Maestro/Playwright | Happy path across 4 apps |
 | UAT | Product/stakeholders | Staging demo | Business acceptance |
 

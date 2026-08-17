@@ -31,9 +31,9 @@ Maps baseline requirements → primary implementation → verification.
 | FR-RIDE-06 | rider JobsScreen food + trips inbox | TC-11 |
 | FR-RIDE-07 | `advance_trip` status machine | TC-11 |
 | FR-TRIP-01 | `apps/customer/.../ServicesScreen`, `BookTripScreen` | TC-09 |
-| FR-TRIP-02 | `quote_trip` + `packages/shared/trip-fees` | Unit + TC-09 |
-| FR-TRIP-03 | `request_trip` verification_level ≥ 2 | TC-08/09 |
-| FR-TRIP-04 | `request_trip` courier field checks | TC-10 |
+| FR-TRIP-02 | `quote_trip` + `packages/shared/trip-fees` | Unit + TC-09 + `pnpm api:smoke` |
+| FR-TRIP-03 | `request_trip` verification_level ≥ 2 | TC-08/09 + `pnpm api:smoke` |
+| FR-TRIP-04 | `request_trip` courier field checks | TC-10 + `pnpm api:smoke` |
 | FR-TRIP-05 | TripTrackScreen + `cancel_trip` | TC-09 |
 | FR-ADMIN-01 | verifications page | TC-01 |
 | FR-ADMIN-02 | merchants page | Manual |
@@ -49,7 +49,7 @@ Maps baseline requirements → primary implementation → verification.
 | FR-FEE-05 | `trips` fare-split constraint + trip-fees | Unit + TC-09 |
 | NFR-SEC-01 | RLS in migrations | RLS smoke (HAPPY_PATH) |
 | NFR-SEC-02 | private buckets | Manual upload ACL |
-| NFR-REL-01 | `supabase/migrations` | CI/db reset |
+| NFR-REL-01 | `supabase/migrations` | CI/db reset + local `pnpm db:start` |
 | NFR-MAIN-01 | Turborepo structure | Build CI |
 
 Update this matrix when adding or changing Must-priority requirements.

@@ -18,12 +18,13 @@ Bolantero follows a **hybrid iterative SDLC**: requirements and architecture are
 | Document | Phase |
 |----------|-------|
 | [01-REQUIREMENTS.md](01-REQUIREMENTS.md) | Requirements (SRS) |
-| [02-ANALYSIS-DESIGN.md](02-ANALYSIS-DESIGN.md) | Analysis & Design |
+| [02-ANALYSIS-DESIGN.md](02-ANALYSIS-DESIGN.md) | System architecture & ADRs |
 | [03-IMPLEMENTATION.md](03-IMPLEMENTATION.md) | Implementation standards |
 | [04-TESTING.md](04-TESTING.md) | Test strategy & plan |
 | [05-DEPLOYMENT.md](05-DEPLOYMENT.md) | Release & deploy |
 | [06-MAINTENANCE.md](06-MAINTENANCE.md) | Operations & change control |
 | [TRACEABILITY.md](TRACEABILITY.md) | Requirement → code → test map |
+| [PROGRESS.md](PROGRESS.md) | Implementation progress log |
 
 ## Roles (RACI summary)
 

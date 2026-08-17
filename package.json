@@ -8,10 +8,11 @@
     "lint": "turbo run lint",
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
-    "db:start": "pnpm dlx supabase start",
+    "db:start": "pnpm dlx supabase start --ignore-health-check",
     "db:reset": "pnpm dlx supabase db reset",
     "db:types": "pnpm dlx supabase gen types typescript --local > packages/database/src/types.ts",
-    "seed": "node --env-file=.env scripts/seed-demo.mjs"
+    "seed": "node --env-file=.env scripts/seed-demo.mjs",
+    "api:smoke": "node --env-file=.env scripts/api-smoke.mjs"
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.50.2"
