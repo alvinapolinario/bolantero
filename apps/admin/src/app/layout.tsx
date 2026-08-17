@@ -1,20 +1,21 @@
 import type { Metadata } from "next";
-import { Fraunces, Manrope } from "next/font/google";
+import { Source_Sans_3 } from "next/font/google";
 import "./globals.css";
 
-const display = Fraunces({
+const sans = Source_Sans_3({
   subsets: ["latin"],
-  variable: "--font-fraunces",
-});
-
-const body = Manrope({
-  subsets: ["latin"],
-  variable: "--font-manrope",
+  weight: ["300", "400", "600", "700"],
 });
 
 export const metadata: Metadata = {
   title: "Bolantero Admin",
-  description: "Platform operations, verification, and delivery monitoring.",
+  description: "Platform operations: verification, food deliveries, and Ride/Padala trips.",
+};
+
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  viewportFit: "cover" as const,
 };
 
 export default function RootLayout({
@@ -24,9 +25,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <body className={`${display.variable} ${body.variable} antialiased`}>
-        {children}
-      </body>
+      <body className={`${sans.className} antialiased`}>{children}</body>
     </html>
   );
 }

@@ -117,7 +117,7 @@ Out of scope (later phases): grocery, pharmacy, hardware; cars/vans; multi-stop/
 | NFR-PERF-01 | Order, delivery, and trip status updates via realtime within interactive UX | Should |
 | NFR-REL-01 | Schema changes via versioned migrations only | Must |
 | NFR-MAIN-01 | Monorepo with shared domain packages | Must |
-| NFR-USAB-01 | Mobile-first customer/rider; ops-dense merchant/admin | Should |
+| NFR-USAB-01 | Mobile-first customer/rider; ops-dense merchant/admin that remains usable on tablet/phone | Should |
 
 ## 5. Constraints
 

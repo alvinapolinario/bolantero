@@ -30,28 +30,44 @@ export default function LoginPage() {
   }
 
   return (
-    <main className="shell" style={{ maxWidth: 480 }}>
-      <p className="badge">{APP_NAME} Admin</p>
-      <h1>Operations login</h1>
-      <form className="card" onSubmit={onSubmit} style={{ display: "grid", gap: 12, marginTop: 20 }}>
-        <div>
-          <label className="label">Email</label>
-          <input className="input" value={email} onChange={(e) => setEmail(e.target.value)} />
-        </div>
-        <div>
-          <label className="label">Password</label>
-          <input
-            className="input"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-          />
-        </div>
-        <button className="btn" disabled={loading}>
-          {loading ? "Signing in..." : "Sign in"}
-        </button>
-        {error ? <p style={{ color: "var(--bol-danger)" }}>{error}</p> : null}
-      </form>
+    <main className="login-page">
+      <div className="login-box">
+        <p className="login-logo">
+          <b>{APP_NAME}</b> Admin
+        </p>
+        <section className="card">
+          <div className="card-body">
+            <p className="login-box-msg">Sign in to start your session</p>
+            <form onSubmit={onSubmit} style={{ display: "grid", gap: 12 }}>
+              <div>
+                <label className="label">Email</label>
+                <input
+                  className="input"
+                  type="email"
+                  autoComplete="username"
+                  inputMode="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                />
+              </div>
+              <div>
+                <label className="label">Password</label>
+                <input
+                  className="input"
+                  type="password"
+                  autoComplete="current-password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                />
+              </div>
+              <button className="btn block" disabled={loading}>
+                {loading ? "Signing in..." : "Sign in"}
+              </button>
+              {error ? <p style={{ color: "var(--lte-danger)", margin: 0 }}>{error}</p> : null}
+            </form>
+          </div>
+        </section>
+      </div>
     </main>
   );
 }

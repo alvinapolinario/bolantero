@@ -103,13 +103,17 @@ export default function FeesPage() {
   }
 
   return (
-    <Shell title="Fee configuration">
+    <Shell title="Fee rules" lede="Food delivery fees and Ride/Padala fare rules. Never a merchant sales commission.">
+      <div className="stack-page">
+      {message ? <p className="alert">{message}</p> : null}
       <div className="grid-2">
-        <form className="card" onSubmit={onCreate} style={{ display: "grid", gap: 12 }}>
-          <h2 style={{ marginTop: 0 }}>New food delivery rule</h2>
-          <p className="muted" style={{ marginTop: 0 }}>
+        <form className="card" onSubmit={onCreate}>
+          <div className="card-header">New food delivery rule</div>
+          <div className="card-body" style={{ display: "grid", gap: 12 }}>
+          <p className="muted" style={{ margin: 0 }}>
             Food platform revenue = delivery + COD fees only.
           </p>
+          <div className="field-grid">
           {[
             ["Base fee", baseFee, setBaseFee],
             ["Free km", freeKm, setFreeKm],
@@ -122,21 +126,25 @@ export default function FeesPage() {
               <label className="label">{label as string}</label>
               <input
                 className="input"
+                inputMode="decimal"
                 value={value as string}
                 onChange={(e) => (setter as (v: string) => void)(e.target.value)}
               />
             </div>
           ))}
+          </div>
           <button className="btn" type="submit">
             Save food rule
           </button>
+          </div>
         </form>
 
         <section className="card">
-          <h2 style={{ marginTop: 0 }}>Food rules</h2>
-          <div style={{ display: "grid", gap: 12 }}>
+          <div className="card-header">Food rules</div>
+          <div className="card-body" style={{ display: "grid", gap: 12 }}>
+            {rules.length === 0 ? <p className="muted" style={{ margin: 0 }}>No food rules yet.</p> : null}
             {rules.map((rule) => (
-              <article key={rule.id} style={{ borderTop: "1px solid var(--bol-line)", paddingTop: 12 }}>
+              <article key={rule.id} style={{ borderTop: "1px solid var(--lte-line)", paddingTop: 12 }}>
                 <strong>
                   {rule.name} {rule.is_active ? <span className="badge">active</span> : null}
                 </strong>
@@ -155,10 +163,11 @@ export default function FeesPage() {
         </section>
       </div>
 
-      <div className="grid-2" style={{ marginTop: 20 }}>
-        <form className="card" onSubmit={onCreateTrip} style={{ display: "grid", gap: 12 }}>
-          <h2 style={{ marginTop: 0 }}>New Ride / Padala rule</h2>
-          <p className="muted" style={{ marginTop: 0 }}>
+      <div className="grid-2">
+        <form className="card" onSubmit={onCreateTrip}>
+          <div className="card-header">New Ride / Padala rule</div>
+          <div className="card-body" style={{ display: "grid", gap: 12 }}>
+          <p className="muted" style={{ margin: 0 }}>
             Trip fare = platform fee + rider earning. Never a merchant payee.
           </p>
           <label className="label">Service</label>
@@ -170,6 +179,7 @@ export default function FeesPage() {
             <option value="ride">Ride</option>
             <option value="courier">Padala</option>
           </select>
+          <div className="field-grid">
           {[
             ["Base fee", tripBase, setTripBase],
             ["Free km", tripFree, setTripFree],
@@ -182,22 +192,25 @@ export default function FeesPage() {
               <label className="label">{label as string}</label>
               <input
                 className="input"
+                inputMode="decimal"
                 value={value as string}
                 onChange={(e) => (setter as (v: string) => void)(e.target.value)}
               />
             </div>
           ))}
+          </div>
           <button className="btn" type="submit">
             Save trip rule
           </button>
-          {message ? <p className="muted">{message}</p> : null}
+          </div>
         </form>
 
         <section className="card">
-          <h2 style={{ marginTop: 0 }}>Trip rules</h2>
-          <div style={{ display: "grid", gap: 12 }}>
+          <div className="card-header">Trip rules</div>
+          <div className="card-body" style={{ display: "grid", gap: 12 }}>
+            {tripRules.length === 0 ? <p className="muted" style={{ margin: 0 }}>No trip rules yet.</p> : null}
             {tripRules.map((rule) => (
-              <article key={rule.id} style={{ borderTop: "1px solid var(--bol-line)", paddingTop: 12 }}>
+              <article key={rule.id} style={{ borderTop: "1px solid var(--lte-line)", paddingTop: 12 }}>
                 <strong>
                   {rule.name} · {tripServiceLabel(rule.service_type)}{" "}
                   {rule.is_active ? <span className="badge">active</span> : null}
@@ -215,6 +228,7 @@ export default function FeesPage() {
             ))}
           </div>
         </section>
+      </div>
       </div>
     </Shell>
   );

@@ -33,6 +33,7 @@
 | TC-10 | Padala without recipient/item | Rejected by `request_trip` | FR-TRIP-04 |
 | TC-11 | Rider completes Ride; food still placeable | Earning recorded; `place_order` still works | FR-RIDE-06/07 |
 | TC-12 | Admin reports | Merchant product ≠ food fees ≠ trip platform fee | FR-ADMIN-05/06, FR-FEE-04 |
+| TC-13 | Admin at 375 / 768 / 1280 widths | Nav, tables, fee forms usable without horizontal page scroll | NFR-USAB-01 |
 
 Full operator script: [../HAPPY_PATH.md](../HAPPY_PATH.md)
 

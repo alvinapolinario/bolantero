@@ -39,38 +39,49 @@ export default function DeliveriesPage() {
   }, []);
 
   return (
-    <Shell title="Live delivery monitor">
+    <Shell title="Live deliveries" lede="Food jobs in motion. Platform take is delivery and COD fees only.">
       <section className="card">
-        <table className="table">
-          <thead>
-            <tr>
-              <th>Order</th>
-              <th>Delivery status</th>
-              <th>Rider</th>
-              <th>Fee / earning</th>
-              <th>Updated</th>
-            </tr>
-          </thead>
-          <tbody>
-            {rows.map((row) => (
-              <tr key={row.id}>
-                <td>
-                  <strong>{row.orders?.order_number ?? row.order_id.slice(0, 8)}</strong>
-                  <div className="muted">Order: {row.orders?.status}</div>
-                </td>
-                <td>
-                  <span className="badge">{row.status}</span>
-                </td>
-                <td className="muted">{row.rider_id ? row.rider_id.slice(0, 8) : "Unassigned"}</td>
-                <td>
-                  ₱{Number(row.orders?.delivery_fee ?? 0).toFixed(2)}
-                  <div className="muted">Rider ₱{Number(row.rider_earning).toFixed(2)}</div>
-                </td>
-                <td className="muted">{new Date(row.updated_at).toLocaleString()}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <div className="card-header">Recent deliveries</div>
+        {rows.length === 0 ? (
+          <p className="empty">No deliveries yet.</p>
+        ) : (
+          <div className="table-wrap">
+            <table className="table">
+              <thead>
+                <tr>
+                  <th>Order</th>
+                  <th>Delivery status</th>
+                  <th>Rider</th>
+                  <th>Fee / earning</th>
+                  <th>Updated</th>
+                </tr>
+              </thead>
+              <tbody>
+                {rows.map((row) => (
+                  <tr key={row.id}>
+                    <td data-label="Order">
+                      <strong>{row.orders?.order_number ?? row.order_id.slice(0, 8)}</strong>
+                      <div className="muted">Order: {row.orders?.status}</div>
+                    </td>
+                    <td data-label="Status">
+                      <span className="badge">{row.status}</span>
+                    </td>
+                    <td className="muted" data-label="Rider">
+                      {row.rider_id ? row.rider_id.slice(0, 8) : "Unassigned"}
+                    </td>
+                    <td data-label="Fee / earning">
+                      ₱{Number(row.orders?.delivery_fee ?? 0).toFixed(2)}
+                      <div className="muted">Rider ₱{Number(row.rider_earning).toFixed(2)}</div>
+                    </td>
+                    <td className="muted" data-label="Updated">
+                      {new Date(row.updated_at).toLocaleString()}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </section>
     </Shell>
   );

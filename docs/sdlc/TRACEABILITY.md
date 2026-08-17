@@ -51,5 +51,6 @@ Maps baseline requirements → primary implementation → verification.
 | NFR-SEC-02 | private buckets | Manual upload ACL |
 | NFR-REL-01 | `supabase/migrations` | CI/db reset + local `pnpm db:start` |
 | NFR-MAIN-01 | Turborepo structure | Build CI |
+| NFR-USAB-01 | Admin stacked tables + fluid grids (`apps/admin`) | TC-13 |
 
 Update this matrix when adding or changing Must-priority requirements.

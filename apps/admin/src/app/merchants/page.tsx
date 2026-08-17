@@ -30,44 +30,57 @@ export default function MerchantsPage() {
   }
 
   return (
-    <Shell title="Merchant approvals">
+    <Shell title="Merchants" lede="Approve stores to sell. Product revenue stays with the merchant.">
       <section className="card">
-        <table className="table">
-          <thead>
-            <tr>
-              <th>Business</th>
-              <th>Area</th>
-              <th>Status</th>
-              <th />
-            </tr>
-          </thead>
-          <tbody>
-            {merchants.map((m) => (
-              <tr key={m.id}>
-                <td>
-                  <strong>{m.name}</strong>
-                  <div className="muted">{m.category_slug}</div>
-                </td>
-                <td>{m.service_area_code}</td>
-                <td>
-                  <span className="badge">{m.status}</span>
-                </td>
-                <td style={{ display: "flex", gap: 8 }}>
-                  {m.status !== "approved" ? (
-                    <button className="btn" type="button" onClick={() => setStatus(m.id, "approved")}>
-                      Approve
-                    </button>
-                  ) : null}
-                  {m.status !== "suspended" ? (
-                    <button className="btn secondary" type="button" onClick={() => setStatus(m.id, "suspended")}>
-                      Suspend
-                    </button>
-                  ) : null}
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <div className="card-header">All merchants</div>
+        {merchants.length === 0 ? (
+          <p className="empty">No merchants yet.</p>
+        ) : (
+          <div className="table-wrap">
+            <table className="table compact">
+              <thead>
+                <tr>
+                  <th>Business</th>
+                  <th>Area</th>
+                  <th>Status</th>
+                  <th />
+                </tr>
+              </thead>
+              <tbody>
+                {merchants.map((m) => (
+                  <tr key={m.id}>
+                    <td data-label="Business">
+                      <strong>{m.name}</strong>
+                      <div className="muted">{m.category_slug}</div>
+                    </td>
+                    <td data-label="Area">{m.service_area_code}</td>
+                    <td data-label="Status">
+                      <span className="badge">{m.status}</span>
+                    </td>
+                    <td>
+                      <div className="table-actions">
+                        {m.status !== "approved" ? (
+                          <button className="btn" type="button" onClick={() => setStatus(m.id, "approved")}>
+                            Approve
+                          </button>
+                        ) : null}
+                        {m.status !== "suspended" ? (
+                          <button
+                            className="btn secondary"
+                            type="button"
+                            onClick={() => setStatus(m.id, "suspended")}
+                          >
+                            Suspend
+                          </button>
+                        ) : null}
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
       </section>
     </Shell>
   );
