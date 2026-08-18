@@ -1,4 +1,5 @@
 export * from "./constants";
+export * from "./privacy";
 export * from "./roles";
 export * from "./fees";
 export * from "./trip-fees";

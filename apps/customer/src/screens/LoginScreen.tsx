@@ -11,7 +11,13 @@ import { APP_NAME, TAGLINE } from "@bolantero/shared";
 import { supabase } from "../lib/supabase";
 import { theme } from "../theme";
 
-export function LoginScreen({ onAuthed }: { onAuthed: () => void }) {
+export function LoginScreen({
+  onAuthed,
+  onCreateAccount,
+}: {
+  onAuthed: () => void;
+  onCreateAccount?: () => void;
+}) {
   const [mode, setMode] = useState<"email" | "phone">("email");
   const [email, setEmail] = useState("customer@bolantero.local");
   const [password, setPassword] = useState("password123");
@@ -120,6 +126,11 @@ export function LoginScreen({ onAuthed }: { onAuthed: () => void }) {
           </>
         )}
         {error ? <Text style={styles.error}>{error}</Text> : null}
+        {onCreateAccount ? (
+          <Pressable style={styles.createWrap} onPress={onCreateAccount}>
+            <Text style={styles.createLink}>Create an account</Text>
+          </Pressable>
+        ) : null}
       </View>
     </View>
   );
@@ -128,7 +139,7 @@ export function LoginScreen({ onAuthed }: { onAuthed: () => void }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: theme.colors.bg,
+    backgroundColor: "#f4f5f3",
     padding: theme.spacing.lg,
     justifyContent: "center",
   },
@@ -181,4 +192,6 @@ const styles = StyleSheet.create({
   },
   btnText: { color: theme.colors.white, fontWeight: "800" },
   error: { color: theme.colors.danger, marginTop: 12 },
+  createWrap: { marginTop: 16, alignItems: "center" },
+  createLink: { color: theme.colors.brand, fontWeight: "700" },
 });

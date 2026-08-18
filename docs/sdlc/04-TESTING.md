@@ -34,6 +34,8 @@
 | TC-11 | Rider completes Ride; food still placeable | Earning recorded; `place_order` still works | FR-RIDE-06/07 |
 | TC-12 | Admin reports | Merchant product ≠ food fees ≠ trip platform fee | FR-ADMIN-05/06, FR-FEE-04 |
 | TC-13 | Admin at 375 / 768 / 1280 widths | Nav, tables, fee forms usable without horizontal page scroll | NFR-USAB-01 |
+| TC-14 | New user: notice without age/privacy/terms stays blocked; marketing stays optional; one of Apple/Google/OTP | Continue disabled until required consents; social is not KYC | FR-AUTH-04/05, NFR-PRIV-02 |
+| TC-15 | Customer home: Where to? + Ride/Padala/Food; quote then book | Map sheet + tabs; fare still `quote_trip` / `request_trip` | NFR-USAB-01, FR-TRIP-01 |
 
 Full operator script: [../HAPPY_PATH.md](../HAPPY_PATH.md)
 

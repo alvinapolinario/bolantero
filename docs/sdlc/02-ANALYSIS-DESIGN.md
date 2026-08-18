@@ -1,6 +1,6 @@
 # Analysis & Design — Bolantero
 
-**Version:** 1.2  
+**Version:** 1.3  
 **Status:** Baselined (as-built Phase 1 food + Phase 2 Ride/Padala)  
 **Scope:** Tacurong City, Lambayong, Isulan · motorcycle mobility + food logistics
 
@@ -276,7 +276,7 @@ flowchart TB
 
 | Layer | Mechanism |
 |-------|-----------|
-| AuthN | Supabase Auth (email/password demo; phone OTP when SMS configured) |
+| AuthN | Supabase Auth: privacy notice then one of Apple / Google / PH OTP (email/password remains demo fallback) |
 | Session | Expo SecureStore (mobile); cookies (`@supabase/ssr`) on Next apps |
 | AuthZ | `profiles.role`, `verification_level`, `is_admin()`, RLS |
 | Money writes | Security-definer RPCs; no client-supplied fare/subtotal |
@@ -343,10 +343,22 @@ CI (`.github/workflows/ci.yml`) typechecks shared packages and web apps, runs un
 - **Decision:** Expo and Next.js call Supabase Auth / PostgREST / RPCs / Realtime / Storage directly.
 - **Consequence:** Operational simplicity for the SK launch; business rules that must not be bypassed live in Postgres, not in client code.
 
+### ADR-008 — Progressive registration (DPA)
+- **Decision:** Collect the minimum identifier at signup (one of Apple, Google, or PH OTP) after unbundled consent. Government ID stays on the KYC step. Phone after social login is a contact check, not identity proof.
+- **Consequence:** Matches NFR-PRIV-01/02. Social providers are not a substitute for FR-KYC-*. Email/password remains for local demo (FR-AUTH-01).
+
 ## 11. Critical flows
 
-### 11.1 Verification
-Register → OTP/email → upload docs → admin `review_verification` → level upgrade → **Bolantero Verified**.
+### 11.1 Registration and verification
+Progressive identity (RA 10173: transparency, legitimate purpose, proportionality):
+
+1. **Notice (no identifier yet):** age 18+, Privacy Notice, Terms. Marketing is a separate optional opt-in.
+2. **One sign-in:** Apple, Google (`openid email profile` only), or PH mobile OTP. Email/password is demo/fallback only.
+3. **Level 1 profile** with recorded notice version. No location, contacts, camera, or government ID on this step.
+4. **Contact (FR-AUTH-05):** if Apple/Google, verify a PH mobile before customer booking or rider online.
+5. **KYC (unchanged):** ID + selfie later → admin `review_verification` → level upgrade → **Bolantero Verified**.
+
+Google, Apple, SMS, and Supabase are processors / identity providers disclosed in the notice. Cross-border processing is possible for Apple and Google.
 
 ### 11.2 Order-to-delivery
 Customer Food tile → catalog → cart → `place_order` → merchant confirm/ready → rider `accept_delivery` → arrived / picked up / POD / delivered → rating.
@@ -356,10 +368,10 @@ Customer Ride or Padala → landmark pickup/dropoff in a launch area → `quote_
 
 ## 12. UI/UX design principles
 
-- Brand: trusted local logistics (earth + deep green; Fraunces/Manrope)
-- Customer/Rider: task-focused mobile flows; customer default home is Ride/Padala, Food is a secondary tile
+- Brand: trusted local logistics (earth + deep green)
+- Customer: map-first mobility home (Grab/Angkas-style sheet): Where to?, Ride / Padala / Food, bottom tabs. Pickup/dropoff stay landmark-based (no Google Maps SDK in this slice)
+- Rider: task-focused mobile flows
 - Merchant/Admin: operational density over marketing chrome
-- Pickup/dropoff for this slice: saved addresses + landmarks (map pin UX is a follow-on)
 
 ## 13. Design change control
 

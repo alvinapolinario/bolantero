@@ -2,6 +2,74 @@
 
 Living log. Newest entry first. Tie work to requirement IDs.
 
+## 2026-08-18 — Customer mobility UI
+
+**Goal:** Customer app map-first home like PH super-apps (NFR-USAB-01, FR-TRIP-01). No money-model change. Landmarks still used instead of a Google Maps SDK.
+
+| Item | Status |
+|------|--------|
+| Home | Map canvas + Where to? + Ride / Padala / Food |
+| Book / Track | Bottom sheet, A/B pins, sticky fare |
+| Tabs | Home · Activity · Account |
+| Food | Search, category chips, merchant cards |
+
+Open: `pnpm --filter customer dev` (8081) · `customer@bolantero.local` / `password123`.
+
+**Next:** Rider inbox (accept/advance trips).
+
+## 2026-08-18 — DPA progressive registration
+
+**Goal:** Register after unbundled privacy notice, then one of Apple / Google / PH OTP (FR-AUTH-04/05, NFR-PRIV-02). No money-model change. Social login is not KYC.
+
+| Item | Status |
+|------|--------|
+| Notice step | Age 18+, Privacy Notice, Terms required; marketing optional |
+| Method step | Apple, Google, PH mobile; email demo fallback |
+| Consent columns | `profiles` privacy/terms/age/marketing/phone_verified_at |
+| Unit | TC-14 helpers in `packages/shared` |
+
+Open: rider http://localhost:8082 → Create an account. Demo sign-in still `rider@bolantero.local` / `password123`. Apply migration (`pnpm db:reset` or equivalent) for new profile columns.
+
+**Next:** Connect Google/Apple in Supabase Auth for production; rider inbox.
+
+## 2026-08-18 — Rider login screen
+
+**Goal:** Design the Expo rider login (FR-AUTH-01/02, NFR-USAB-01). No money-model change.
+
+| Item | Status |
+|------|--------|
+| Hero + partner copy | Food / Ride / Padala chips · motorcycle · SK cities |
+| Email / Phone OTP | Segmented tabs, 44px inputs, show/hide password |
+| Keyboard | Avoiding view + scroll on small phones |
+| Local keys | `apps/rider/.env` gitignored; client ignores `app.json` placeholder |
+| Web blank screen | Installed `react-dom` + `react-native-web` so Metro can bundle login |
+
+Open: `pnpm --filter rider dev` (port 8082) · `rider@bolantero.local` / `password123`.
+
+**Next:** Rider inbox (accept/advance trips).
+
+## 2026-08-18 — Customer Expo against local API
+
+**Goal:** Run `apps/customer` (Expo, iOS + Android) against local Supabase and prove Ride/Padala booking (FR-TRIP-01…05). No Flutter rewrite (ADR-004).
+
+| Item | Status |
+|------|--------|
+| Local keys | `apps/customer/.env` (gitignored). Client ignores `app.json` placeholder |
+| Session storage | SecureStore on native; `localStorage` on web |
+| `pnpm --filter customer dev` | **Up** — Metro http://localhost:8081 (env loaded) |
+| Login `customer@bolantero.local` | OK — verification_level 2 |
+| Ride `quote_trip` | fare ₱40 = platform ₱8 + rider ₱32 |
+| Ride `request_trip` | `TRP-260817-0F269B` requested; payees `platform,rider` |
+| Padala without item | Rejected (`padala requires an item description`) |
+| Padala with item + recipient | `TRP-260817-AC3218` requested; no merchant payee |
+| Cancel while requested | Ride → `cancelled` |
+| Unverified book | Rejected (`verification level 2 required`) |
+| Food catalog | 3 approved merchants still readable |
+
+Open: scan the Expo QR or http://localhost:8081 · login `customer@bolantero.local` / `password123`.
+
+**Next:** Rider inbox (accept/advance trips), then polish customer UI if needed.
+
 ## 2026-08-18 — AdminLTE 4 font and colors
 
 **Goal:** Match the AdminLTE 4 screenshot: Source Sans 3, `#007bff` / `#28a745` / `#ffc107` / `#dc3545`, `#343a40` sidebar, `#f4f6f9` canvas. Dropped Bolantero cream tokens from admin.

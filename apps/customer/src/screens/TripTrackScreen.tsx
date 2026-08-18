@@ -1,11 +1,15 @@
 import { useEffect, useState } from "react";
 import { Pressable, StyleSheet, Text, View } from "react-native";
-import { tripServiceLabel } from "@bolantero/shared";
+import { tripServiceLabel, type ServiceAreaCode, type TripStatus } from "@bolantero/shared";
 import type { Tables } from "@bolantero/database";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { supabase } from "../lib/supabase";
 import { theme } from "../theme";
+import { MapCanvas } from "../ui/MapCanvas";
 
 type Trip = Tables<"trips">;
+
+const LIVE: TripStatus[] = ["requested", "accepted", "arrived_pickup", "in_progress", "completed"];
 
 export function TripTrackScreen({
   tripId,
@@ -14,15 +18,12 @@ export function TripTrackScreen({
   tripId: string;
   onBack: () => void;
 }) {
+  const insets = useSafeAreaInsets();
   const [trip, setTrip] = useState<Trip | null>(null);
   const [message, setMessage] = useState<string | null>(null);
 
   async function load() {
-    const { data } = await supabase
-      .from("trips")
-      .select("*")
-      .eq("id", tripId)
-      .maybeSingle();
+    const { data } = await supabase.from("trips").select("*").eq("id", tripId).maybeSingle();
     setTrip(data);
   }
 
@@ -52,78 +53,108 @@ export function TripTrackScreen({
 
   if (!trip) {
     return (
-      <View style={styles.container}>
+      <View style={[styles.root, { paddingTop: insets.top + 16, paddingHorizontal: 16 }]}>
         <Pressable onPress={onBack}>
           <Text style={styles.link}>← Back</Text>
         </Pressable>
-        <Text style={styles.sub}>Loading trip…</Text>
+        <Text style={styles.sub}>Finding your trip…</Text>
       </View>
     );
   }
 
-  return (
-    <View style={styles.container}>
-      <Pressable onPress={onBack}>
-        <Text style={styles.link}>← Activity</Text>
-      </Pressable>
-      <Text style={styles.title}>{trip.trip_number}</Text>
-      <Text style={styles.sub}>
-        {tripServiceLabel(trip.service_type)} · {trip.status}
-      </Text>
+  const stepIndex = LIVE.indexOf(trip.status as TripStatus);
 
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>
+  return (
+    <View style={styles.root}>
+      <MapCanvas
+        area={trip.service_area_code as ServiceAreaCode}
+        pickup={{ lat: trip.pickup_lat, lng: trip.pickup_lng, label: trip.pickup_label }}
+        dropoff={{ lat: trip.dropoff_lat, lng: trip.dropoff_lng, label: trip.dropoff_label }}
+      />
+      <Pressable style={[styles.back, { top: Math.max(insets.top, 8) }]} onPress={onBack}>
+        <Text style={styles.backText}>←</Text>
+      </Pressable>
+
+      <View style={[styles.sheet, { paddingBottom: 16 + insets.bottom }]}>
+        <Text style={styles.kicker}>{tripServiceLabel(trip.service_type)}</Text>
+        <Text style={styles.title}>{trip.trip_number}</Text>
+        <View style={styles.steps}>
+          {LIVE.filter((s) => s !== "completed" || trip.status === "completed").map((status, index) => (
+            <View key={status} style={styles.step}>
+              <View style={[styles.stepDot, stepIndex >= index && styles.stepDotOn]} />
+              <Text style={[styles.stepLabel, stepIndex >= index && styles.stepLabelOn]}>
+                {status.replace("_", " ")}
+              </Text>
+            </View>
+          ))}
+        </View>
+        <Text style={styles.route}>
           {trip.pickup_label} → {trip.dropoff_label}
         </Text>
+        <Text style={styles.fare}>₱{Number(trip.fare).toFixed(2)}</Text>
         <Text style={styles.sub}>
-          {trip.pickup_line1}, {trip.pickup_barangay}
-        </Text>
-        <Text style={styles.sub}>
-          {trip.dropoff_line1}, {trip.dropoff_barangay}
-        </Text>
-        <Text style={styles.total}>Fare ₱{Number(trip.fare).toFixed(2)}</Text>
-        <Text style={styles.sub}>
-          Platform ₱{Number(trip.platform_fee).toFixed(2)} · Rider ₱
-          {Number(trip.rider_earning).toFixed(2)}
+          Platform ₱{Number(trip.platform_fee).toFixed(2)} · Rider ₱{Number(trip.rider_earning).toFixed(2)}
         </Text>
         {trip.service_type === "courier" ? (
           <Text style={styles.sub}>
             For {trip.recipient_name} · {trip.parcel_description}
           </Text>
         ) : null}
+        {trip.status === "requested" ? (
+          <Pressable style={styles.cancel} onPress={cancel}>
+            <Text style={styles.cancelText}>Cancel trip</Text>
+          </Pressable>
+        ) : null}
+        {message ? <Text style={styles.sub}>{message}</Text> : null}
       </View>
-
-      {trip.status === "requested" ? (
-        <Pressable style={styles.btn} onPress={cancel}>
-          <Text style={styles.btnText}>Cancel trip</Text>
-        </Pressable>
-      ) : null}
-      {message ? <Text style={styles.sub}>{message}</Text> : null}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: theme.colors.bg, padding: 16 },
-  link: { color: theme.colors.brand, fontWeight: "800", marginBottom: 8 },
-  title: { fontSize: 28, fontWeight: "800", color: theme.colors.brandDeep },
-  sub: { color: theme.colors.muted, marginTop: 4 },
-  card: {
-    marginTop: 16,
-    backgroundColor: theme.colors.bgElevated,
-    borderRadius: 14,
-    padding: 14,
-    borderWidth: 1,
-    borderColor: theme.colors.line,
-  },
-  cardTitle: { fontWeight: "800", fontSize: 16 },
-  total: { marginTop: 8, fontWeight: "800", fontSize: 18, color: theme.colors.brandDeep },
-  btn: {
-    marginTop: 16,
-    backgroundColor: theme.colors.danger,
-    borderRadius: 12,
-    padding: 14,
+  root: { flex: 1, backgroundColor: "#d7e6d8" },
+  link: { color: theme.colors.brand, fontWeight: "800" },
+  back: {
+    position: "absolute",
+    left: 16,
+    zIndex: 3,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: theme.colors.white,
     alignItems: "center",
+    justifyContent: "center",
   },
-  btnText: { color: "#fff", fontWeight: "800" },
+  backText: { fontSize: 18, fontWeight: "800", color: theme.colors.brandDeep },
+  sheet: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: theme.colors.white,
+    borderTopLeftRadius: 22,
+    borderTopRightRadius: 22,
+    padding: 20,
+  },
+  kicker: { fontWeight: "800", color: theme.colors.brand, textTransform: "uppercase", fontSize: 12 },
+  title: { fontSize: 22, fontWeight: "800", color: theme.colors.brandDeep, marginTop: 4 },
+  steps: { flexDirection: "row", flexWrap: "wrap", gap: 8, marginTop: 14, marginBottom: 12 },
+  step: { flexDirection: "row", alignItems: "center", gap: 6 },
+  stepDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: theme.colors.line },
+  stepDotOn: { backgroundColor: theme.colors.brand },
+  stepLabel: { fontSize: 11, color: theme.colors.muted, textTransform: "capitalize" },
+  stepLabelOn: { color: theme.colors.brandDeep, fontWeight: "700" },
+  route: { fontWeight: "700", color: theme.colors.ink },
+  fare: { marginTop: 10, fontSize: 22, fontWeight: "800", color: theme.colors.brandDeep },
+  sub: { color: theme.colors.muted, marginTop: 4 },
+  cancel: {
+    marginTop: 16,
+    borderWidth: 1,
+    borderColor: theme.colors.danger,
+    borderRadius: 14,
+    minHeight: 48,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  cancelText: { color: theme.colors.danger, fontWeight: "800" },
 });

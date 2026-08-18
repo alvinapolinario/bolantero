@@ -21,8 +21,10 @@ import {
   type TripServiceType,
 } from "@bolantero/shared";
 import type { Tables } from "@bolantero/database";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { supabase } from "../lib/supabase";
 import { theme } from "../theme";
+import { MapCanvas } from "../ui/MapCanvas";
 
 type Address = Tables<"addresses">;
 type Stop = {
@@ -51,10 +53,12 @@ export function BookTripScreen({
   onBack: () => void;
   onBooked: (tripId: string) => void;
 }) {
+  const insets = useSafeAreaInsets();
   const [area, setArea] = useState<ServiceAreaCode>("tacurong");
   const [addresses, setAddresses] = useState<Address[]>([]);
   const [pickup, setPickup] = useState<Stop | null>(null);
   const [dropoff, setDropoff] = useState<Stop | null>(null);
+  const [picking, setPicking] = useState<"pickup" | "dropoff">("pickup");
   const [paymentMethod, setPaymentMethod] = useState<"cod" | "online">("cod");
   const [parcelSize, setParcelSize] = useState<ParcelSize>("small");
   const [parcelDescription, setParcelDescription] = useState("");
@@ -75,10 +79,7 @@ export function BookTripScreen({
         data: { user },
       } = await supabase.auth.getUser();
       if (!user) return;
-      const { data } = await supabase
-        .from("addresses")
-        .select("*")
-        .eq("user_id", user.id);
+      const { data } = await supabase.from("addresses").select("*").eq("user_id", user.id);
       setAddresses(data ?? []);
     })();
   }, []);
@@ -87,6 +88,7 @@ export function BookTripScreen({
     setPickup(null);
     setDropoff(null);
     setQuote(null);
+    setPicking("pickup");
   }, [area, serviceType]);
 
   const localQuote = useMemo(() => {
@@ -126,8 +128,7 @@ export function BookTripScreen({
       setMessage(error.message);
       return;
     }
-    const row = data as Quote;
-    setQuote(row);
+    setQuote(data as Quote);
   }
 
   async function confirm() {
@@ -179,29 +180,14 @@ export function BookTripScreen({
     onBooked(data.id);
   }
 
-  function stopChip(
-    stop: Stop,
-    selected: Stop | null,
-    onSelect: (stop: Stop) => void,
-  ) {
-    const active =
-      selected?.lat === stop.lat &&
-      selected?.lng === stop.lng &&
-      selected?.label === stop.label;
-    return (
-      <Pressable
-        key={`${stop.label}-${stop.lat}`}
-        style={[styles.chip, active && styles.chipActive]}
-        onPress={() => {
-          onSelect(stop);
-          setQuote(null);
-        }}
-      >
-        <Text style={{ color: active ? "#fff" : theme.colors.ink, fontWeight: "700" }}>
-          {stop.label}
-        </Text>
-      </Pressable>
-    );
+  function chooseStop(stop: Stop) {
+    if (picking === "pickup") {
+      setPickup(stop);
+      setPicking("dropoff");
+    } else {
+      setDropoff(stop);
+    }
+    setQuote(null);
   }
 
   const savedStops: Stop[] = addresses
@@ -214,177 +200,240 @@ export function BookTripScreen({
       lat: a.lat,
       lng: a.lng,
     }));
+  const stops = [...savedStops, ...landmarks];
+  const fare = quote ?? localQuote;
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={{ paddingBottom: 40 }}>
-      <Pressable onPress={onBack}>
-        <Text style={styles.link}>← Services</Text>
+    <View style={styles.root}>
+      <MapCanvas area={area} pickup={pickup} dropoff={dropoff} />
+      <Pressable
+        style={[styles.back, { top: Math.max(insets.top, 8) }]}
+        onPress={onBack}
+        accessibilityRole="button"
+      >
+        <Text style={styles.backText}>←</Text>
       </Pressable>
-      <Text style={styles.title}>Book {tripServiceLabel(serviceType)}</Text>
-      <Text style={styles.sub}>Motorcycle only · landmark pickup in launch cities</Text>
 
-      <Text style={styles.section}>Service area</Text>
-      <View style={styles.row}>
-        {SERVICE_AREAS.map((item) => (
-          <Pressable
-            key={item.code}
-            style={[styles.chip, area === item.code && styles.chipActive]}
-            onPress={() => setArea(item.code)}
-          >
-            <Text style={{ color: area === item.code ? "#fff" : theme.colors.ink, fontWeight: "700" }}>
-              {item.name}
-            </Text>
-          </Pressable>
-        ))}
-      </View>
+      <View style={[styles.sheet, { paddingBottom: 12 + insets.bottom }]}>
+        <ScrollView keyboardShouldPersistTaps="handled" showsVerticalScrollIndicator={false}>
+          <Text style={styles.title}>{tripServiceLabel(serviceType)}</Text>
+          <Text style={styles.sub}>Motorcycle · pick a landmark in a launch city</Text>
 
-      <Text style={styles.section}>Pickup</Text>
-      <View style={styles.row}>
-        {savedStops.map((stop) => stopChip(stop, pickup, setPickup))}
-        {landmarks.map((stop) => stopChip(stop, pickup, setPickup))}
-      </View>
-
-      <Text style={styles.section}>Dropoff</Text>
-      <View style={styles.row}>
-        {savedStops.map((stop) => stopChip(stop, dropoff, setDropoff))}
-        {landmarks.map((stop) => stopChip(stop, dropoff, setDropoff))}
-      </View>
-
-      {serviceType === "courier" ? (
-        <>
-          <Text style={styles.section}>Padala details</Text>
-          <View style={styles.row}>
-            {PARCEL_SIZES.map((size) => (
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.row}>
+            {SERVICE_AREAS.map((item) => (
               <Pressable
-                key={size}
-                style={[styles.chip, parcelSize === size && styles.chipActive]}
-                onPress={() => {
-                  setParcelSize(size);
-                  setQuote(null);
-                }}
+                key={item.code}
+                style={[styles.chip, area === item.code && styles.chipOn]}
+                onPress={() => setArea(item.code)}
               >
-                <Text style={{ color: parcelSize === size ? "#fff" : theme.colors.ink, fontWeight: "700" }}>
-                  {size}
+                <Text style={[styles.chipText, area === item.code && styles.chipTextOn]}>{item.name}</Text>
+              </Pressable>
+            ))}
+          </ScrollView>
+
+          <Pressable style={styles.stopRow} onPress={() => setPicking("pickup")}>
+            <View style={styles.dotA} />
+            <View style={{ flex: 1 }}>
+              <Text style={styles.stopLabel}>Pickup</Text>
+              <Text style={styles.stopValue}>{pickup ? `${pickup.label} · ${pickup.city}` : "Choose pickup"}</Text>
+            </View>
+          </Pressable>
+          <View style={styles.connector} />
+          <Pressable style={styles.stopRow} onPress={() => setPicking("dropoff")}>
+            <View style={styles.dotB} />
+            <View style={{ flex: 1 }}>
+              <Text style={styles.stopLabel}>Dropoff</Text>
+              <Text style={styles.stopValue}>{dropoff ? `${dropoff.label} · ${dropoff.city}` : "Where to?"}</Text>
+            </View>
+          </Pressable>
+
+          <Text style={styles.section}>
+            {picking === "pickup" ? "Set pickup" : "Set dropoff"}
+          </Text>
+          {stops.map((stop) => {
+            const selected =
+              (picking === "pickup" ? pickup : dropoff)?.label === stop.label &&
+              (picking === "pickup" ? pickup : dropoff)?.lat === stop.lat;
+            return (
+              <Pressable
+                key={`${stop.label}-${stop.lat}`}
+                style={[styles.place, selected && styles.placeOn]}
+                onPress={() => chooseStop(stop)}
+              >
+                <Text style={styles.placeName}>{stop.label}</Text>
+                <Text style={styles.placeMeta}>
+                  {stop.line1} · {stop.city}
+                </Text>
+              </Pressable>
+            );
+          })}
+
+          {serviceType === "courier" ? (
+            <>
+              <Text style={styles.section}>Package</Text>
+              <View style={styles.rowWrap}>
+                {PARCEL_SIZES.map((size) => (
+                  <Pressable
+                    key={size}
+                    style={[styles.chip, parcelSize === size && styles.chipOn]}
+                    onPress={() => {
+                      setParcelSize(size);
+                      setQuote(null);
+                    }}
+                  >
+                    <Text style={[styles.chipText, parcelSize === size && styles.chipTextOn]}>{size}</Text>
+                  </Pressable>
+                ))}
+              </View>
+              <TextInput
+                style={styles.input}
+                placeholder="Item description"
+                value={parcelDescription}
+                onChangeText={setParcelDescription}
+              />
+              <TextInput
+                style={styles.input}
+                placeholder="Recipient name"
+                value={recipientName}
+                onChangeText={setRecipientName}
+              />
+              <TextInput
+                style={styles.input}
+                placeholder="Recipient phone +639…"
+                value={recipientPhone}
+                onChangeText={setRecipientPhone}
+                keyboardType="phone-pad"
+              />
+            </>
+          ) : null}
+
+          <Text style={styles.section}>Pay</Text>
+          <View style={styles.rowWrap}>
+            {(["cod", "online"] as const).map((method) => (
+              <Pressable
+                key={method}
+                style={[styles.chip, paymentMethod === method && styles.chipOn]}
+                onPress={() => setPaymentMethod(method)}
+              >
+                <Text style={[styles.chipText, paymentMethod === method && styles.chipTextOn]}>
+                  {method === "cod" ? "Cash" : "Online intent"}
                 </Text>
               </Pressable>
             ))}
           </View>
-          <TextInput
-            style={styles.input}
-            placeholder="Item description"
-            value={parcelDescription}
-            onChangeText={setParcelDescription}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Recipient name"
-            value={recipientName}
-            onChangeText={setRecipientName}
-          />
-          <TextInput
-            style={styles.input}
-            placeholder="Recipient phone +639..."
-            value={recipientPhone}
-            onChangeText={setRecipientPhone}
-            keyboardType="phone-pad"
-          />
-        </>
-      ) : null}
+        </ScrollView>
 
-      <Text style={styles.section}>Payment</Text>
-      <View style={styles.row}>
-        {(["cod", "online"] as const).map((method) => (
-          <Pressable
-            key={method}
-            style={[styles.chip, paymentMethod === method && styles.chipActive]}
-            onPress={() => setPaymentMethod(method)}
-          >
-            <Text style={{ color: paymentMethod === method ? "#fff" : theme.colors.ink, fontWeight: "700" }}>
-              {method === "cod" ? "Cash" : "Online intent"}
-            </Text>
-          </Pressable>
-        ))}
+        <View style={styles.footer}>
+          <View>
+            <Text style={styles.fareLabel}>{quote ? "Quoted fare" : "Estimate"}</Text>
+            <Text style={styles.fare}>₱{(fare?.fare ?? 0).toFixed(2)}</Text>
+            {quote ? (
+              <Text style={styles.fareSplit}>
+                Platform ₱{Number(quote.platformFee).toFixed(2)} · Rider ₱
+                {Number(quote.riderEarning).toFixed(2)}
+              </Text>
+            ) : (
+              <Text style={styles.fareSplit}>Get a server quote to book</Text>
+            )}
+          </View>
+          {quote ? (
+            <Pressable style={styles.cta} onPress={confirm} disabled={loading}>
+              <Text style={styles.ctaText}>{loading ? "Booking…" : "Book"}</Text>
+            </Pressable>
+          ) : (
+            <Pressable style={styles.cta} onPress={loadQuote} disabled={loading}>
+              <Text style={styles.ctaText}>{loading ? "Quoting…" : "Get fare"}</Text>
+            </Pressable>
+          )}
+        </View>
+        {message ? <Text style={styles.error}>{message}</Text> : null}
       </View>
-
-      <View style={styles.card}>
-        <Text style={styles.cardTitle}>Fare quote</Text>
-        <Text style={styles.sub}>
-          Estimate ₱{(localQuote?.fare ?? 0).toFixed(2)} · server quote required
-        </Text>
-        {quote ? (
-          <>
-            <Text style={styles.sub}>Distance {Number(quote.distanceKm).toFixed(1)} km</Text>
-            <Text style={styles.total}>Fare ₱{Number(quote.fare).toFixed(2)}</Text>
-            <Text style={styles.sub}>
-              Platform ₱{Number(quote.platformFee).toFixed(2)} · Rider ₱
-              {Number(quote.riderEarning).toFixed(2)}
-            </Text>
-          </>
-        ) : null}
-      </View>
-
-      <Pressable style={styles.btnSecondary} onPress={loadQuote} disabled={loading}>
-        <Text style={styles.btnSecondaryText}>{loading ? "Quoting..." : "Get fare quote"}</Text>
-      </Pressable>
-      <Pressable style={styles.btn} onPress={confirm} disabled={loading || !quote}>
-        <Text style={styles.btnText}>Confirm booking</Text>
-      </Pressable>
-      {message ? <Text style={styles.error}>{message}</Text> : null}
-    </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: theme.colors.bg, padding: 16 },
-  link: { color: theme.colors.brand, fontWeight: "800", marginBottom: 8 },
-  title: { fontSize: 28, fontWeight: "800", color: theme.colors.brandDeep },
-  sub: { color: theme.colors.muted, marginTop: 4 },
-  section: { marginTop: 16, marginBottom: 8, fontWeight: "800" },
-  row: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
+  root: { flex: 1, backgroundColor: "#d7e6d8" },
+  back: {
+    position: "absolute",
+    left: 16,
+    zIndex: 3,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: theme.colors.white,
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  backText: { fontSize: 18, fontWeight: "800", color: theme.colors.brandDeep },
+  sheet: {
+    position: "absolute",
+    left: 0,
+    right: 0,
+    bottom: 0,
+    top: "32%",
+    backgroundColor: theme.colors.white,
+    borderTopLeftRadius: 22,
+    borderTopRightRadius: 22,
+    paddingHorizontal: 16,
+    paddingTop: 16,
+  },
+  title: { fontSize: 22, fontWeight: "800", color: theme.colors.brandDeep },
+  sub: { color: theme.colors.muted, marginTop: 4, marginBottom: 12 },
+  row: { gap: 8, paddingBottom: 8 },
+  rowWrap: { flexDirection: "row", flexWrap: "wrap", gap: 8 },
   chip: {
-    borderWidth: 1,
-    borderColor: theme.colors.line,
     borderRadius: 999,
     paddingHorizontal: 12,
     paddingVertical: 8,
-    backgroundColor: theme.colors.bgElevated,
+    backgroundColor: "#f3f4f2",
   },
-  chipActive: { backgroundColor: theme.colors.brand, borderColor: theme.colors.brand },
+  chipOn: { backgroundColor: theme.colors.brand },
+  chipText: { fontWeight: "700", color: theme.colors.ink },
+  chipTextOn: { color: theme.colors.white },
+  stopRow: { flexDirection: "row", alignItems: "center", gap: 12, paddingVertical: 8 },
+  dotA: { width: 12, height: 12, borderRadius: 6, backgroundColor: theme.colors.brand },
+  dotB: { width: 12, height: 12, borderRadius: 3, backgroundColor: theme.colors.accent },
+  connector: { width: 2, height: 10, backgroundColor: theme.colors.line, marginLeft: 5 },
+  stopLabel: { fontSize: 11, fontWeight: "700", color: theme.colors.muted, textTransform: "uppercase" },
+  stopValue: { fontWeight: "800", color: theme.colors.ink, marginTop: 2 },
+  section: { marginTop: 14, marginBottom: 8, fontWeight: "800", color: theme.colors.brandDeep },
+  place: {
+    paddingVertical: 10,
+    borderBottomWidth: StyleSheet.hairlineWidth,
+    borderBottomColor: theme.colors.line,
+  },
+  placeOn: { backgroundColor: "#eef3ee", marginHorizontal: -8, paddingHorizontal: 8, borderRadius: 8 },
+  placeName: { fontWeight: "800", color: theme.colors.ink },
+  placeMeta: { color: theme.colors.muted, fontSize: 12, marginTop: 2 },
   input: {
     borderWidth: 1,
     borderColor: theme.colors.line,
-    borderRadius: 10,
-    padding: 10,
+    borderRadius: 12,
+    padding: 12,
     backgroundColor: "#fff",
     marginTop: 8,
   },
-  card: {
-    marginTop: 16,
-    backgroundColor: theme.colors.bgElevated,
-    borderRadius: 14,
-    padding: 14,
-    borderWidth: 1,
-    borderColor: theme.colors.line,
+  footer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
+    gap: 12,
+    paddingTop: 12,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: theme.colors.line,
   },
-  cardTitle: { fontWeight: "800" },
-  total: { marginTop: 8, fontWeight: "800", fontSize: 18, color: theme.colors.brandDeep },
-  btn: {
-    marginTop: 12,
+  fareLabel: { fontSize: 11, fontWeight: "700", color: theme.colors.muted, textTransform: "uppercase" },
+  fare: { fontSize: 22, fontWeight: "800", color: theme.colors.brandDeep },
+  fareSplit: { color: theme.colors.muted, fontSize: 11, marginTop: 2 },
+  cta: {
     backgroundColor: theme.colors.brand,
-    borderRadius: 12,
-    padding: 14,
+    borderRadius: 14,
+    minHeight: 48,
+    paddingHorizontal: 22,
     alignItems: "center",
+    justifyContent: "center",
   },
-  btnText: { color: "#fff", fontWeight: "800" },
-  btnSecondary: {
-    marginTop: 16,
-    borderWidth: 1,
-    borderColor: theme.colors.line,
-    borderRadius: 12,
-    padding: 14,
-    alignItems: "center",
-    backgroundColor: "#fff",
-  },
-  btnSecondaryText: { fontWeight: "800", color: theme.colors.brandDeep },
-  error: { color: theme.colors.danger, marginTop: 10 },
+  ctaText: { color: theme.colors.white, fontWeight: "800", fontSize: 16 },
+  error: { color: theme.colors.danger, marginTop: 8, fontWeight: "600" },
 });

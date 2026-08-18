@@ -10,7 +10,13 @@ import * as ImagePicker from "expo-image-picker";
 import { supabase } from "../lib/supabase";
 import { theme } from "../theme";
 
-export function VerifyScreen({ onBack }: { onBack: () => void }) {
+export function VerifyScreen({
+  onBack,
+  showBack = true,
+}: {
+  onBack: () => void;
+  showBack?: boolean;
+}) {
   const [idType, setIdType] = useState("PhilSys ID");
   const [idNumber, setIdNumber] = useState("");
   const [idPath, setIdPath] = useState<string | null>(null);
@@ -66,12 +72,14 @@ export function VerifyScreen({ onBack }: { onBack: () => void }) {
 
   return (
     <View style={styles.container}>
-      <Pressable onPress={onBack}>
-        <Text style={styles.link}>← Back</Text>
-      </Pressable>
-      <Text style={styles.title}>Identity verification</Text>
+      {showBack ? (
+        <Pressable onPress={onBack}>
+          <Text style={styles.link}>← Back</Text>
+        </Pressable>
+      ) : null}
+      <Text style={styles.title}>Account</Text>
       <Text style={styles.sub}>
-        Level 2 required before placing orders. Admin reviews ID + selfie.
+        Become Bolantero Verified (Level 2) to book Ride, Padala, and Food. ID and selfie stay private.
       </Text>
 
       <Text style={styles.label}>ID type</Text>
@@ -98,7 +106,7 @@ export function VerifyScreen({ onBack }: { onBack: () => void }) {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: theme.colors.bg, padding: 16 },
+  container: { flex: 1, backgroundColor: "#f4f5f3", padding: 16 },
   link: { color: theme.colors.brand, fontWeight: "800", marginBottom: 8 },
   title: { fontSize: 28, fontWeight: "800", color: theme.colors.brandDeep },
   sub: { color: theme.colors.muted, marginVertical: 8 },

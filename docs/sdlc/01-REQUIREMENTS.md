@@ -1,6 +1,6 @@
 # Software Requirements Specification (SRS) — Bolantero
 
-**Version:** 1.1  
+**Version:** 1.2  
 **Status:** Baseline for Phase 1 + Phase 2  
 **Source:** Product Vision v1.0; Phase 2 Ride + Padala plan  
 
@@ -35,9 +35,11 @@ Out of scope (later phases): grocery, pharmacy, hardware; cars/vans; multi-stop/
 ### FR-AUTH — Authentication
 | ID | Requirement | Priority |
 |----|-------------|----------|
-| FR-AUTH-01 | Users can register/sign in via email/password (MVP demo) | Must |
+| FR-AUTH-01 | Users can register/sign in via email/password (MVP demo / fallback) | Must |
 | FR-AUTH-02 | Users can sign in via mobile OTP when SMS provider configured | Should |
 | FR-AUTH-03 | Session persists securely per client platform | Must |
+| FR-AUTH-04 | New users complete a privacy notice (age 18+, notice, terms; marketing optional) then create an account with **one** of: Sign in with Apple, Sign in with Google, or PH mobile OTP | Must |
+| FR-AUTH-05 | Apple/Google accounts add a verified PH mobile before booking (customer) or going online (rider). Social login is not a KYC substitute | Should |
 
 ### FR-KYC — Identity verification
 | ID | Requirement | Priority |
@@ -114,6 +116,7 @@ Out of scope (later phases): grocery, pharmacy, hardware; cars/vans; multi-stop/
 | NFR-SEC-01 | Row Level Security on all business tables | Must |
 | NFR-SEC-02 | Private storage for IDs, selfies, POD | Must |
 | NFR-PRIV-01 | Personal data minimized; verification docs access limited to owner/admin | Must |
+| NFR-PRIV-02 | Registration consent is unbundled and versioned; Google/Apple/SMS/Supabase named as processors; no location, contacts, or ID capture at signup | Must |
 | NFR-PERF-01 | Order, delivery, and trip status updates via realtime within interactive UX | Should |
 | NFR-REL-01 | Schema changes via versioned migrations only | Must |
 | NFR-MAIN-01 | Monorepo with shared domain packages | Must |

@@ -61,6 +61,12 @@ export type Database = {
           is_active: boolean;
           created_at: string;
           updated_at: string;
+          privacy_notice_version: string | null;
+          privacy_accepted_at: string | null;
+          terms_accepted_at: string | null;
+          age_confirmed_at: string | null;
+          marketing_opt_in: boolean;
+          phone_verified_at: string | null;
         };
         Insert: {
           id: string;
@@ -72,6 +78,12 @@ export type Database = {
           is_active?: boolean;
           created_at?: string;
           updated_at?: string;
+          privacy_notice_version?: string | null;
+          privacy_accepted_at?: string | null;
+          terms_accepted_at?: string | null;
+          age_confirmed_at?: string | null;
+          marketing_opt_in?: boolean;
+          phone_verified_at?: string | null;
         };
         Update: {
           id?: string;
@@ -83,6 +95,12 @@ export type Database = {
           is_active?: boolean;
           created_at?: string;
           updated_at?: string;
+          privacy_notice_version?: string | null;
+          privacy_accepted_at?: string | null;
+          terms_accepted_at?: string | null;
+          age_confirmed_at?: string | null;
+          marketing_opt_in?: boolean;
+          phone_verified_at?: string | null;
         };
         Relationships: [];
       };

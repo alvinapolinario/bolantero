@@ -7,6 +7,8 @@ Maps baseline requirements → primary implementation → verification.
 | FR-AUTH-01 | `apps/*/login`, Supabase Auth | TC-01, manual login |
 | FR-AUTH-02 | OTP flows in customer/rider/merchant | Manual when SMS enabled |
 | FR-AUTH-03 | Expo SecureStore / Next cookies | Manual session persist |
+| FR-AUTH-04 | `apps/*/RegisterScreen`, notice then Apple/Google/OTP | TC-14 |
+| FR-AUTH-05 | RegisterScreen phone-after-social step | Manual + TC-14 helpers |
 | FR-KYC-01 | `apps/customer/.../VerifyScreen`, storage buckets | TC-07 prep + admin approve |
 | FR-KYC-02 | `apps/merchant/onboarding` | Manual + admin queue |
 | FR-KYC-03 | `accept_delivery` RPC level check | TC-04 |
@@ -49,8 +51,10 @@ Maps baseline requirements → primary implementation → verification.
 | FR-FEE-05 | `trips` fare-split constraint + trip-fees | Unit + TC-09 |
 | NFR-SEC-01 | RLS in migrations | RLS smoke (HAPPY_PATH) |
 | NFR-SEC-02 | private buckets | Manual upload ACL |
+| NFR-PRIV-01 | KYC private storage + RLS | Manual upload ACL |
+| NFR-PRIV-02 | `packages/shared` consent helpers + RegisterScreen | TC-14 |
 | NFR-REL-01 | `supabase/migrations` | CI/db reset + local `pnpm db:start` |
 | NFR-MAIN-01 | Turborepo structure | Build CI |
-| NFR-USAB-01 | Admin stacked tables + fluid grids (`apps/admin`) | TC-13 |
+| NFR-USAB-01 | Admin stacked tables; customer map-home + tabs (`apps/customer`) | TC-13, TC-15 |
 
 Update this matrix when adding or changing Must-priority requirements.

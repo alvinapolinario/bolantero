@@ -20,7 +20,6 @@ export function HomeScreen({
   onOpenMerchant,
   onOpenCart,
   onOpenOrders,
-  onOpenVerify,
 }: {
   onBack: () => void;
   onOpenMerchant: (merchant: Merchant) => void;
@@ -66,32 +65,28 @@ export function HomeScreen({
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <View>
-          <Pressable onPress={onBack}>
-            <Text style={styles.link}>← Services</Text>
-          </Pressable>
+        <Pressable onPress={onBack} style={styles.backBtn}>
+          <Text style={styles.backText}>←</Text>
+        </Pressable>
+        <View style={{ flex: 1 }}>
           <Text style={styles.brand}>Food</Text>
-          <Text style={styles.sub}>Phase 1 merchants · SK launch cities</Text>
-          {badge ? <Text style={styles.badge}>{badge}</Text> : null}
+          <Text style={styles.sub}>Nearby merchants · SK cities</Text>
         </View>
-        <View style={styles.actions}>
-          <Pressable onPress={onOpenVerify}>
-            <Text style={styles.link}>Verify</Text>
-          </Pressable>
-          <Pressable onPress={onOpenOrders}>
-            <Text style={styles.link}>Orders</Text>
-          </Pressable>
-          <Pressable onPress={onOpenCart}>
-            <Text style={styles.link}>Cart</Text>
-          </Pressable>
-        </View>
+        <Pressable onPress={onOpenOrders}>
+          <Text style={styles.orders}>Orders</Text>
+        </Pressable>
+        <Pressable onPress={onOpenCart} style={styles.cartBtn}>
+          <Text style={styles.cartText}>Cart</Text>
+        </Pressable>
       </View>
+      {badge ? <Text style={styles.badge}>{badge}</Text> : null}
 
       <TextInput
         style={styles.search}
-        placeholder="Search merchants"
+        placeholder="Search food"
         value={query}
         onChangeText={setQuery}
+        placeholderTextColor={theme.colors.muted}
       />
 
       <FlatList
@@ -102,18 +97,12 @@ export function HomeScreen({
         style={{ maxHeight: 48, marginBottom: 12 }}
         renderItem={({ item }) => (
           <Pressable
-            style={[
-              styles.chip,
-              (item.slug ?? null) === category ? styles.chipActive : null,
-            ]}
+            style={[styles.chip, (item.slug ?? null) === category ? styles.chipActive : null]}
             onPress={() => setCategory(item.slug)}
           >
             <Text
               style={{
-                color:
-                  (item.slug ?? null) === category
-                    ? theme.colors.white
-                    : theme.colors.ink,
+                color: (item.slug ?? null) === category ? theme.colors.white : theme.colors.ink,
                 fontWeight: "700",
               }}
             >
@@ -127,16 +116,19 @@ export function HomeScreen({
         data={filtered}
         keyExtractor={(item) => item.id}
         contentContainerStyle={{ gap: 12, paddingBottom: 40 }}
-        ListEmptyComponent={
-          <Text style={styles.sub}>No approved food merchants yet.</Text>
-        }
+        ListEmptyComponent={<Text style={styles.sub}>No approved food merchants yet.</Text>}
         renderItem={({ item }) => (
           <Pressable style={styles.card} onPress={() => onOpenMerchant(item)}>
-            <Text style={styles.cardTitle}>{item.name}</Text>
-            <Text style={styles.sub}>
-              {item.category_slug} · {item.service_area_code}
-            </Text>
-            <Text style={styles.sub}>{item.address_line}</Text>
+            <View style={styles.avatar}>
+              <Text style={styles.avatarText}>{item.name.slice(0, 1)}</Text>
+            </View>
+            <View style={{ flex: 1 }}>
+              <Text style={styles.cardTitle}>{item.name}</Text>
+              <Text style={styles.sub}>
+                {item.category_slug} · {item.service_area_code}
+              </Text>
+              <Text style={styles.sub}>{item.address_line}</Text>
+            </View>
           </Pressable>
         )}
       />
@@ -145,17 +137,21 @@ export function HomeScreen({
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1, backgroundColor: theme.colors.bg, padding: 16 },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    marginBottom: 12,
-    gap: 12,
+  container: { flex: 1, backgroundColor: "#f4f5f3", padding: 16 },
+  header: { flexDirection: "row", alignItems: "center", gap: 12, marginBottom: 8 },
+  backBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: theme.colors.white,
+    alignItems: "center",
+    justifyContent: "center",
   },
-  brand: { fontSize: 28, fontWeight: "800", color: theme.colors.brandDeep },
-  sub: { color: theme.colors.muted, marginTop: 2 },
+  backText: { fontWeight: "800", fontSize: 18, color: theme.colors.brandDeep },
+  brand: { fontSize: 24, fontWeight: "800", color: theme.colors.brandDeep },
+  sub: { color: theme.colors.muted, marginTop: 2, fontSize: 13 },
   badge: {
-    marginTop: 6,
+    marginBottom: 10,
     alignSelf: "flex-start",
     backgroundColor: "#e4efe7",
     color: theme.colors.brandDeep,
@@ -166,32 +162,45 @@ const styles = StyleSheet.create({
     fontWeight: "700",
     fontSize: 12,
   },
-  actions: { gap: 8, alignItems: "flex-end" },
-  link: { color: theme.colors.brand, fontWeight: "800" },
+  cartBtn: {
+    backgroundColor: theme.colors.brand,
+    borderRadius: 999,
+    paddingHorizontal: 14,
+    minHeight: 40,
+    justifyContent: "center",
+  },
+  cartText: { color: theme.colors.white, fontWeight: "800" },
+  orders: { color: theme.colors.brand, fontWeight: "800" },
   search: {
     backgroundColor: theme.colors.white,
-    borderWidth: 1,
-    borderColor: theme.colors.line,
-    borderRadius: 12,
-    padding: 12,
+    borderRadius: 14,
+    padding: 14,
     marginBottom: 12,
   },
   chip: {
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 999,
-    borderWidth: 1,
-    borderColor: theme.colors.line,
     marginRight: 8,
-    backgroundColor: theme.colors.bgElevated,
+    backgroundColor: theme.colors.white,
   },
-  chipActive: { backgroundColor: theme.colors.brand, borderColor: theme.colors.brand },
+  chipActive: { backgroundColor: theme.colors.brand },
   card: {
-    backgroundColor: theme.colors.bgElevated,
-    borderRadius: 14,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: theme.colors.line,
+    backgroundColor: theme.colors.white,
+    borderRadius: 16,
+    padding: 14,
+    flexDirection: "row",
+    gap: 12,
+    alignItems: "center",
   },
-  cardTitle: { fontSize: 18, fontWeight: "800", color: theme.colors.ink },
+  avatar: {
+    width: 48,
+    height: 48,
+    borderRadius: 14,
+    backgroundColor: "#e4efe7",
+    alignItems: "center",
+    justifyContent: "center",
+  },
+  avatarText: { fontWeight: "800", color: theme.colors.brandDeep, fontSize: 18 },
+  cardTitle: { fontSize: 16, fontWeight: "800", color: theme.colors.ink },
 });
